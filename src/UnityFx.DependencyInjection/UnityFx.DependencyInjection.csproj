@@ -5,6 +5,7 @@
 		<Description>Dependency injection tools for Unity3d.</Description>
 		<Company />
 		<Authors>Alexander Bogarsukov</Authors>
+		<Copyright>Alexander Bogarsukov</Copyright>
 		<PackageProjectUrl>https://github.com/Arvtesh/UnityFx.DependencyInjection</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Arvtesh/UnityFx.DependencyInjection</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
