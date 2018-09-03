@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnityFx.DependencyInjection", "UnityFx.DependencyInjection\UnityFx.DependencyInjection.csproj", "{685FC2AA-A328-47EA-8119-467299E20CE2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnityFx.DependencyInjection.Tests", "UnityFx.DependencyInjection.Tests\UnityFx.DependencyInjection.Tests.csproj", "{311A26D4-4E7E-4534-B8E0-4EB12F83E0BE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{685FC2AA-A328-47EA-8119-467299E20CE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{685FC2AA-A328-47EA-8119-467299E20CE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{685FC2AA-A328-47EA-8119-467299E20CE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{685FC2AA-A328-47EA-8119-467299E20CE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{311A26D4-4E7E-4534-B8E0-4EB12F83E0BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311A26D4-4E7E-4534-B8E0-4EB12F83E0BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311A26D4-4E7E-4534-B8E0-4EB12F83E0BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311A26D4-4E7E-4534-B8E0-4EB12F83E0BE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5C0346E6-BFDC-40F2-833F-4CBDBD83FDBE}
+	EndGlobalSection
+EndGlobal
