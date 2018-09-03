@@ -35,3 +35,19 @@ dotnet_csproj:
   assembly_version: '$(GitVersion_AssemblySemVer)'
   file_version: '$(GitVersion_MajorMinorPatch).$(GitVersion_CommitsSinceVersionSource)'
   informational_version: '$(GitVersion_InformationalVersion)'
+
+deploy:
+  - provider: GitHub
+    tag: v$(GitVersion_MajorMinorPatch)
+    auth_token:
+      secure: aTd8m7PLWUlE3iacD7bx9oWPW/CK0+BTE7/nhgB2EXk8iZ3FJ/TJX5kKLIYP76nN
+    force_update: false
+    on:
+      branch: master
+
+  - provider: NuGet
+    api_key:
+      secure: cl8dp9ovHYMe/jROq1m/sDPa4z4CbrOkwauIGXxBdSu+jPFXIME/yFPswAui3BoC
+    artifact: /.*\.nupkg/
+    on:
+      branch: /master|(release\/.+)|(hotfix\/.+)/
