@@ -8,20 +8,14 @@ namespace UnityFx.AppStates.DependencyInjection
 	/// <summary>
 	/// Represents an error that occurs when a service defines usable no constructors.
 	/// </summary>
-	public class ServiceConstructorResolutionException : Exception
+	public class ServiceConstructorResolutionException : ServiceResolutionException
 	{
-		/// <summary>
-		/// Gets service type.
-		/// </summary>
-		public Type ServiceType { get; }
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ServiceConstructorResolutionException"/> class.
 		/// </summary>
 		public ServiceConstructorResolutionException(Type serviceType)
-			: base(string.Format("None of {0} constructors can be used to create a service instance.", serviceType.Name))
+			: base(serviceType, string.Format("None of {0} constructors can be used to create a service instance.", serviceType.Name))
 		{
-			ServiceType = serviceType;
 		}
 	}
 }

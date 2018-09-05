@@ -6,7 +6,7 @@ using System;
 namespace UnityFx.AppStates.DependencyInjection
 {
 	/// <summary>
-	/// Specifies the lifetime of a service in an <see cref="IServiceCollection"/>.
+	/// Specifies the lifetime of a service defined via <see cref="ServiceDescriptor"/>.
 	/// </summary>
 	public enum ServiceLifetime
 	{
@@ -16,7 +16,7 @@ namespace UnityFx.AppStates.DependencyInjection
 		Singleton,
 
 		/// <summary>
-		/// Not supported currently. Specifies that a new instance of the service will be created for each scope.
+		/// Specifies that a new instance of the service will be created for each scope. Not supported currently.
 		/// </summary>
 		Scoped,
 

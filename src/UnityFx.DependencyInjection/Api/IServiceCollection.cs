@@ -9,6 +9,8 @@ namespace UnityFx.AppStates.DependencyInjection
 	/// <summary>
 	/// Specifies the contract for a collection of service descriptors.
 	/// </summary>
+	/// <seealso cref="ServiceDescriptor"/>
+	/// <seealso cref="IServiceProvider"/>
 #if NET35
 	public interface IServiceCollection : ICollection<ServiceDescriptor>
 #else

@@ -10,6 +10,7 @@ namespace UnityFx.AppStates.DependencyInjection
 	/// <summary>
 	/// Default implementation of <see cref="IServiceCollection"/>.
 	/// </summary>
+	/// <seealso cref="ServiceDescriptor"/>
 	public class ServiceCollection : List<ServiceDescriptor>, IServiceCollection
 	{
 		#region data
