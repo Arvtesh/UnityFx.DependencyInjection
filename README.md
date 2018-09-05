@@ -8,7 +8,7 @@ Github | [![GitHub release](https://img.shields.io/github/release/Arvtesh/UnityF
 
 ## Synopsis
 
-*UnityFx.DependencyInjection* is a lightweight ASP.NET-like dependency injection framework for Unity. Basically it provides an implementation of [IServiceProvider](https://docs.microsoft.com/en-us/dotnet/api/system.iserviceprovider) and ways to initialize it. It only supports constructor injection.
+*UnityFx.DependencyInjection* is a lightweight ASP.NET-like dependency injection framework for Unity. It provides an implementation of [IServiceProvider](https://docs.microsoft.com/en-us/dotnet/api/system.iserviceprovider) interface and a lot of tools for dependency management. It only supports constructor injection. The project has an API very similar to [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection).
 
 ## Getting Started
 ### Prerequisites
@@ -40,11 +40,6 @@ Dependency injection involves four roles:
 * The *interfaces* that define how the client may use the services.
 * The *injector* (aka DI container), which is responsible for constructing the services and injecting them into the client.
 
-There are at least 3 ways an object can receive a reference to a service:
-* Constructor injection.
-* Setter (property) injection.
-* Interface injection.
-
 ### Constructor injection
 In constructor injection all client dependencies are provided through a class constructor. Preferred when all dependencies can be constructed first because it can be used to ensure the client object is always in a valid state, as opposed to having some of its dependency references be null (not be set). However, on its own, it lacks the flexibility to have its dependencies changed later. This can be a first step towards making the client immutable and therefore thread safe. In general, this is the recommended approach.
 
@@ -55,7 +50,7 @@ In setter injection the client exposes a setter method (or property) that the in
 In interface injection the dependency provides an injector method that will inject the dependency into any client passed to it. Clients must implement an interface that exposes a setter method that accepts the dependency. The advantage of interface injection is that dependencies can be completely ignorant of their clients yet can still receive a reference to a new client and, using it, send a reference-to-self back to the client. In this way, the dependencies become injectors. The key is that the injecting method (which could just be a classic setter method) is provided through an interface.
 
 ## Using the library
-Reference the DLL and import the namespace:
+Reference the DLL (NuGet package) and import the namespace:
 ```csharp
 using UnityFx.DependencyInjection;
 ```
