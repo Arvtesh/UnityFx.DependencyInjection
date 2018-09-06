@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	/// <summary>
 	/// Default implementation of <see cref="IServiceProvider"/>.
@@ -54,6 +54,16 @@ namespace UnityFx.AppStates.DependencyInjection
 			{
 				Add(serviceDescriptor);
 			}
+		}
+
+		/// <summary>
+		/// Creates an instance of the specified <paramref name="type"/>.
+		/// </summary>
+		/// <param name="type">Type of the object to create. The type is not expected to be registered in the service provider.</param>
+		/// <returns>An instance of the <paramref name="type"/> created.</returns>
+		public object CreateInstance(Type type)
+		{
+			return CreateInstance(type, null);
 		}
 
 		#endregion

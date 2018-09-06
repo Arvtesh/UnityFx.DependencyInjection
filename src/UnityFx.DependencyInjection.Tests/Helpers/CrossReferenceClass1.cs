@@ -3,7 +3,7 @@
 
 using System;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	internal class CrossReferenceClass1
 	{

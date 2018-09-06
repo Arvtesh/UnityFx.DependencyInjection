@@ -6,7 +6,7 @@ using System.Collections;
 using Xunit;
 using NSubstitute;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	public class ServiceProviderTests
 	{

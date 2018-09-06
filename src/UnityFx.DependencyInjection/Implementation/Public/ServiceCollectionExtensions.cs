@@ -4,7 +4,7 @@
 using System;
 using System.ComponentModel;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	/// <summary>
 	/// Extensions for <see cref="IServiceCollection"/>.

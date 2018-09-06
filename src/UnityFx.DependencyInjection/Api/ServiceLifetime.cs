@@ -3,7 +3,7 @@
 
 using System;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	/// <summary>
 	/// Specifies the lifetime of a service defined via <see cref="ServiceDescriptor"/>.

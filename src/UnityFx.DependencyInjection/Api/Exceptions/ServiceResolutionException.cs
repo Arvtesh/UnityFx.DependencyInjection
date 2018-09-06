@@ -4,7 +4,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	/// <summary>
 	/// Represents an error that occurs when a service requested cannot be resolved.

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	/// <summary>
 	/// Represents an error that occurs when a service defines usable no constructors.

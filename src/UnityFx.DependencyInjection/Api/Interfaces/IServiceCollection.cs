@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	/// <summary>
 	/// Specifies the contract for a collection of service descriptors.
