@@ -13,7 +13,7 @@ namespace UnityFx.DependencyInjection
 	/// any scoped services that have been resolved from <see cref="IServiceProvider"/> will be
 	/// disposed.
 	/// </remarks>
-	/// <seealso cref="ServiceDescriptor"/>
+	/// <seealso cref="IServiceProvider"/>
 	public interface IServiceScope : IDisposable
 	{
 		/// <summary>
