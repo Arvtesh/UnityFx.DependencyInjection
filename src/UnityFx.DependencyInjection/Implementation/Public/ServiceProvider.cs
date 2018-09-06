@@ -14,23 +14,12 @@ namespace UnityFx.DependencyInjection
 	/// </summary>
 	/// <seealso cref="ServiceCollection"/>
 	/// <seealso cref="ServiceDescriptor"/>
-	public class ServiceProvider : IServiceCollection, IServiceProvider, IDisposable
+	public class ServiceProvider : IServiceCollection, IServiceProvider, IServiceProviderHelpers, IDisposable
 	{
 		#region data
 
-		private struct ServiceData
-		{
-			public ServiceDescriptor Descriptor;
-			public object Instance;
-
-			public ServiceData(ServiceDescriptor descriptor)
-			{
-				Descriptor = descriptor;
-				Instance = descriptor.ImplementationInstance;
-			}
-		}
-
-		private Dictionary<Type, ServiceData> _services = new Dictionary<Type, ServiceData>();
+		private Dictionary<Type, ServiceDescriptor> _services = new Dictionary<Type, ServiceDescriptor>();
+		private Dictionary<Type, object> _serviceInstances = new Dictionary<Type, object>();
 		private bool _disposed;
 
 		#endregion
@@ -56,11 +45,11 @@ namespace UnityFx.DependencyInjection
 			}
 		}
 
-		/// <summary>
-		/// Creates an instance of the specified <paramref name="type"/>.
-		/// </summary>
-		/// <param name="type">Type of the object to create. The type is not expected to be registered in the service provider.</param>
-		/// <returns>An instance of the <paramref name="type"/> created.</returns>
+		#endregion
+
+		#region IServiceProviderHelpers
+
+		/// <inheritdoc/>
 		public object CreateInstance(Type type)
 		{
 			if (type == null)
@@ -114,14 +103,8 @@ namespace UnityFx.DependencyInjection
 				throw new ArgumentNullException(nameof(item));
 			}
 
-			if (_services.ContainsKey(item.ServiceType))
-			{
-				_services[item.ServiceType] = new ServiceData(item);
-			}
-			else
-			{
-				_services.Add(item.ServiceType, new ServiceData(item));
-			}
+			RemoveService(item.ServiceType);
+			_services.Add(item.ServiceType, item);
 		}
 
 		/// <inheritdoc/>
@@ -129,7 +112,7 @@ namespace UnityFx.DependencyInjection
 		{
 			if (item != null)
 			{
-				return _services.Remove(item.ServiceType);
+				return RemoveService(item.ServiceType);
 			}
 
 			return false;
@@ -149,17 +132,7 @@ namespace UnityFx.DependencyInjection
 		/// <inheritdoc/>
 		public void CopyTo(ServiceDescriptor[] array, int arrayIndex)
 		{
-			if (array == null)
-			{
-				throw new ArgumentNullException(nameof(array));
-			}
-
-			var index = arrayIndex;
-
-			foreach (var item in _services.Values)
-			{
-				array[arrayIndex++] = item.Descriptor;
-			}
+			_services.Values.CopyTo(array, arrayIndex);
 		}
 
 		/// <inheritdoc/>
@@ -173,19 +146,10 @@ namespace UnityFx.DependencyInjection
 		#region IEnumerable
 
 		/// <inheritdoc/>
-		public IEnumerator<ServiceDescriptor> GetEnumerator()
-		{
-			foreach (var serviceData in _services.Values)
-			{
-				yield return serviceData.Descriptor;
-			}
-		}
+		public IEnumerator<ServiceDescriptor> GetEnumerator() => _services.Values.GetEnumerator();
 
 		/// <inheritdoc/>
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return (this as IEnumerable<ServiceDescriptor>).GetEnumerator();
-		}
+		IEnumerator IEnumerable.GetEnumerator() => _services.Values.GetEnumerator();
 
 		#endregion
 
@@ -198,15 +162,16 @@ namespace UnityFx.DependencyInjection
 			{
 				_disposed = true;
 
-				foreach (var item in _services.Values)
+				foreach (var item in _serviceInstances.Values)
 				{
-					if (item.Instance is IDisposable service)
+					if (item is IDisposable service)
 					{
 						service.Dispose();
 					}
 				}
 
 				_services.Clear();
+				_serviceInstances.Clear();
 			}
 
 			GC.SuppressFinalize(this);
@@ -313,45 +278,43 @@ namespace UnityFx.DependencyInjection
 			}
 			else if (_services.TryGetValue(serviceType, out var item))
 			{
-				var descriptor = item.Descriptor;
-
-				switch (descriptor.Lifetime)
+				switch (item.Lifetime)
 				{
 					case ServiceLifetime.Singleton:
-						return GetSingletonService(descriptor, item.Instance, callerTypes);
+						return GetSingletonService(item, callerTypes);
 
 					case ServiceLifetime.Scoped:
-						return GetScopedService(descriptor, item.Instance, callerTypes);
+						return GetScopedService(item, callerTypes);
 
 					case ServiceLifetime.Transient:
-						return GetTransientService(descriptor, callerTypes);
+						return GetTransientService(item, callerTypes);
 
 					default:
-						throw new NotSupportedException(descriptor.Lifetime.ToString());
+						throw new NotSupportedException(item.Lifetime.ToString());
 				}
 			}
 
 			throw new ServiceNotFoundException(serviceType);
 		}
 
-		private object GetSingletonService(ServiceDescriptor serviceDescriptor, object instance, ICollection<Type> callerTypes)
+		private object GetSingletonService(ServiceDescriptor serviceDescriptor, ICollection<Type> callerTypes)
 		{
 			Debug.Assert(serviceDescriptor != null);
 
-			if (instance != null)
+			if (_serviceInstances.TryGetValue(serviceDescriptor.ServiceType, out var instance))
 			{
 				return instance;
 			}
 			else if (serviceDescriptor.ImplementationType != null)
 			{
 				var service = CreateInstance(serviceDescriptor.ImplementationType, callerTypes);
-				_services[serviceDescriptor.ServiceType] = new ServiceData() { Descriptor = serviceDescriptor, Instance = service };
+				_serviceInstances.Add(serviceDescriptor.ServiceType, service);
 				return service;
 			}
 			else if (serviceDescriptor.ImplementationFactory != null)
 			{
 				var service = serviceDescriptor.ImplementationFactory(this);
-				_services[serviceDescriptor.ServiceType] = new ServiceData() { Descriptor = serviceDescriptor, Instance = service };
+				_serviceInstances.Add(serviceDescriptor.ServiceType, service);
 				return service;
 			}
 
@@ -360,7 +323,7 @@ namespace UnityFx.DependencyInjection
 			throw new InvalidOperationException();
 		}
 
-		private object GetScopedService(ServiceDescriptor serviceDescriptor, object instance, ICollection<Type> callerTypes)
+		private object GetScopedService(ServiceDescriptor serviceDescriptor, ICollection<Type> callerTypes)
 		{
 			Debug.Assert(serviceDescriptor != null);
 
@@ -383,6 +346,26 @@ namespace UnityFx.DependencyInjection
 			// Should not get here.
 			Debug.Fail("Invalid service descriptor.");
 			throw new InvalidOperationException();
+		}
+
+		private bool RemoveService(Type serviceType)
+		{
+			if (_services.Remove(serviceType))
+			{
+				if (_serviceInstances.TryGetValue(serviceType, out var service))
+				{
+					if (service is IDisposable d)
+					{
+						d.Dispose();
+					}
+
+					_serviceInstances.Remove(serviceType);
+				}
+
+				return true;
+			}
+
+			return false;
 		}
 
 		#endregion
