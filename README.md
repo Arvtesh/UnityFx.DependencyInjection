@@ -67,8 +67,9 @@ Please see the links below for extended information on the product:
 ## Useful links
 - [Dependency injection](https://en.wikipedia.org/wiki/Dependency_injection).
 - [Dependency injection in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection).
-- [TinyIoC](https://github.com/grumpydev/TinyIoC).
+- [Autofac](https://github.com/autofac/Autofac).
 - [StrangeIoC](https://github.com/strangeioc/strangeioc).
+- [TinyIoC](https://github.com/grumpydev/TinyIoC).
 
 ## Contributing
 Please see [contributing guide](.github/CONTRIBUTING.md) for details.
@@ -82,4 +83,5 @@ Please see the [![license](https://img.shields.io/github/license/Arvtesh/UnityFx
 ## Acknowledgments
 Working on this project is a great experience. Please see below list of sources of my inspiration (in no particular order):
 * [ASP.NET source](https://github.com/aspnet/DependencyInjection). A great source of knowledge and good programming practices.
+- [TinyIoC source](https://github.com/grumpydev/TinyIoC). The most lightweight IoC container out there.
 * Everyone who ever commented or left any feedback on the project. It's always very helpful.

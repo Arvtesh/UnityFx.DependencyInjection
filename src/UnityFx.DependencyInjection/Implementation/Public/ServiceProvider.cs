@@ -14,7 +14,7 @@ namespace UnityFx.DependencyInjection
 	/// </summary>
 	/// <seealso cref="ServiceCollection"/>
 	/// <seealso cref="ServiceDescriptor"/>
-	public class ServiceProvider : IServiceCollection, IServiceProvider, IServiceProviderHelpers, IDisposable
+	public class ServiceProvider : IServiceCollection, IServiceProvider, IServiceProviderEx, IDisposable
 	{
 		#region data
 
@@ -47,7 +47,7 @@ namespace UnityFx.DependencyInjection
 
 		#endregion
 
-		#region IServiceProviderHelpers
+		#region IServiceProviderEx
 
 		/// <inheritdoc/>
 		public object CreateInstance(Type type)

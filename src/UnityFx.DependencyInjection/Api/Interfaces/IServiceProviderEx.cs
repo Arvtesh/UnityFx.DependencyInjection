@@ -12,7 +12,7 @@ namespace UnityFx.DependencyInjection
 	/// A specific <see cref="IServiceProvider"/> implementation might decide to implement this interface.
 	/// </remarks>
 	/// <seealso cref="IServiceProvider"/>
-	public interface IServiceProviderHelpers
+	public interface IServiceProviderEx : IServiceProvider
 	{
 		/// <summary>
 		/// Creates an instance of the specified <paramref name="type"/>. The <paramref name="type"/> is not expected to be registered in the service provider.
