@@ -63,6 +63,16 @@ namespace UnityFx.DependencyInjection
 		/// <returns>An instance of the <paramref name="type"/> created.</returns>
 		public object CreateInstance(Type type)
 		{
+			if (type == null)
+			{
+				throw new ArgumentNullException(nameof(type));
+			}
+
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(GetType().Name);
+			}
+
 			return CreateInstance(type, null);
 		}
 
@@ -73,6 +83,11 @@ namespace UnityFx.DependencyInjection
 		/// <inheritdoc/>
 		public object GetService(Type serviceType)
 		{
+			if (serviceType == null)
+			{
+				throw new ArgumentNullException(nameof(serviceType));
+			}
+
 			if (_disposed)
 			{
 				throw new ObjectDisposedException(GetType().Name);
