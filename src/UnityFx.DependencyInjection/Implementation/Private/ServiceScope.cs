@@ -5,11 +5,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 
 namespace UnityFx.DependencyInjection
 {
-	internal class ServiceScope : IServiceScope, IServiceProvider
+	internal class ServiceScope : IServiceScope, IServiceScopeFactory, IServiceProvider
 	{
 		#region data
 
@@ -24,6 +23,16 @@ namespace UnityFx.DependencyInjection
 		internal ServiceScope(ServiceProvider serviceProvider)
 		{
 			_serviceProvider = serviceProvider;
+		}
+
+		internal ServiceScope(ServiceProvider serviceProvider, IEnumerable<KeyValuePair<Type, object>> resolvedServices)
+		{
+			_serviceProvider = serviceProvider;
+
+			foreach (var kvp in resolvedServices)
+			{
+				_resolvedServices.Add(kvp.Key, kvp.Value);
+			}
 		}
 
 		internal void AddResolvedService(Type serviceType, object serviceInstance)
@@ -41,6 +50,20 @@ namespace UnityFx.DependencyInjection
 		#region IServiceScope
 
 		public IServiceProvider ServiceProvider => this;
+
+		#endregion
+
+		#region IServiceScopeFactory
+
+		public IServiceScope CreateScope()
+		{
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(GetType().Name);
+			}
+
+			return new ServiceScope(_serviceProvider);
+		}
 
 		#endregion
 

@@ -12,30 +12,22 @@ namespace UnityFx.DependencyInjection
 	/// <summary>
 	/// Default implementatino for <see cref="IServiceProvider"/>.
 	/// </summary>
-	public sealed class ServiceProvider : IServiceProvider, IServiceScopeFactory, IDisposable
+	public sealed class ServiceProvider : IServiceProvider, IDisposable
 	{
 		#region data
 
 		private readonly ServiceScope _rootScope;
-		private readonly Dictionary<Type, ServiceDescriptor> _services = new Dictionary<Type, ServiceDescriptor>();
+		private readonly Dictionary<Type, IServiceFactory> _services = new Dictionary<Type, IServiceFactory>();
 		private bool _disposed;
 
 		#endregion
 
 		#region interface
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ServiceProvider"/> class.
-		/// </summary>
-		public ServiceProvider(IEnumerable<ServiceDescriptor> serviceDescriptors)
+		internal ServiceProvider(IEnumerable<ServiceDescriptor> serviceDescriptors, bool validate)
 		{
 			_rootScope = new ServiceScope(this);
-
-			foreach (var descriptor in serviceDescriptors)
-			{
-				// TODO: validate service descriptors
-				_services.Add(descriptor.ServiceType, descriptor);
-			}
+			InitServices(serviceDescriptors, validate);
 		}
 
 		internal object GetService(Type serviceType, ServiceScope scope)
@@ -54,7 +46,7 @@ namespace UnityFx.DependencyInjection
 						return GetScopedService(item, scope);
 
 					case ServiceLifetime.Transient:
-						return GetTransientService(item, scope);
+						return item.CreateInstance(scope);
 
 					default:
 						throw new NotSupportedException(item.Lifetime.ToString());
@@ -62,7 +54,7 @@ namespace UnityFx.DependencyInjection
 			}
 			else if (serviceType == typeof(IServiceProvider) || serviceType == typeof(IServiceScope) || serviceType == typeof(IServiceScopeFactory))
 			{
-				return this;
+				return scope;
 			}
 
 			return null;
@@ -90,21 +82,6 @@ namespace UnityFx.DependencyInjection
 
 		#endregion
 
-		#region IServiceScopeFactory
-
-		/// <inheritdoc/>
-		IServiceScope IServiceScopeFactory.CreateScope()
-		{
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(GetType().Name);
-			}
-
-			return new ServiceScope(this);
-		}
-
-		#endregion
-
 		#region IDisposable
 
 		/// <inheritdoc/>
@@ -122,161 +99,174 @@ namespace UnityFx.DependencyInjection
 
 		#region implementation
 
-		private object CreateInstance(Type serviceType, ServiceScope scope)
+		private void InitServices(IEnumerable<ServiceDescriptor> serviceDescriptors, bool validate)
 		{
-			Debug.Assert(serviceType != null);
+			var knownTypes = new Dictionary<Type, ServiceDescriptor>();
+			var constructorTypes = new Dictionary<Type, ConstructorInfo>();
 
-			try
+			foreach (var descriptor in serviceDescriptors)
 			{
-				var constructors = serviceType.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+				knownTypes.Add(descriptor.ServiceType, descriptor);
+			}
 
-				if (constructors.Length > 0)
+			foreach (var descriptor in serviceDescriptors)
+			{
+				var serviceType = descriptor.ServiceType;
+
+				// Make sure required services are not registered.
+				if (serviceType == typeof(IServiceProvider) ||
+					serviceType == typeof(IServiceScope) ||
+					serviceType == typeof(IServiceScopeFactory))
 				{
-					////var ctor = GetConstructor(constructors, callerTypes);
+					throw new InvalidOperationException();
+				}
 
-					////if (ctor != null)
-					////{
-					////	var parameters = ctor.GetParameters();
-					////	var args = new object[parameters.Length];
+				if (descriptor.ImplementationInstance != null)
+				{
+					_services.Add(serviceType, new InstanceServiceFactory(serviceType, descriptor.ImplementationInstance));
+				}
+				else if (descriptor.ImplementationType != null)
+				{
+					var ctor = GetPreferredCtor(descriptor.ImplementationType, knownTypes);
 
-					////	for (var i = 0; i < args.Length; ++i)
-					////	{
-					////		args[i] = GetService(parameters[i].ParameterType, scope);
-					////	}
+					if (ctor != null)
+					{
+						constructorTypes.Add(serviceType, ctor);
+					}
 
-					////	return ctor.Invoke(args);
-					////}
-					////else
-					////{
-					////	throw new ServiceConstructorResolutionException(serviceType);
-					////}
-
-					throw new NotImplementedException();
+					_services.Add(serviceType, new ConstructorServiceFactory(serviceType, ctor, descriptor.Lifetime));
+				}
+				else if (descriptor.ImplementationFactory != null)
+				{
+					_services.Add(serviceType, new DelegateServiceFactory(serviceType, descriptor.ImplementationFactory, descriptor.Lifetime));
 				}
 				else
 				{
-					return Activator.CreateInstance(serviceType);
+					throw new InvalidOperationException();
 				}
 			}
-			catch (TargetInvocationException e)
+
+			if (validate)
 			{
-				throw e.InnerException;
+				ValidateConstructors(knownTypes, constructorTypes);
 			}
 		}
 
-		private ConstructorInfo GetConstructor(ConstructorInfo[] ctors, ICollection<Type> callerTypes)
+		private void ValidateConstructors(Dictionary<Type, ServiceDescriptor> knownTypes, Dictionary<Type, ConstructorInfo> constructorTypes)
 		{
-			Debug.Assert(ctors != null);
+			var callStack = new HashSet<Type>();
 
-			// Select the first ctor having all arguments registered.
-			foreach (var ctor in ctors)
+			foreach (var kvp in constructorTypes)
 			{
-				var argumentsValidated = true;
+				callStack.Clear();
 
-				foreach (var arg in ctor.GetParameters())
+				// Make sure there are no dependency loops, i.e. no situations like A depends on B, B depends on A.
+				ValidateCtorLoops(kvp.Key, kvp.Value, constructorTypes, callStack);
+
+				// Make sure singleton constructor do not depend on scoped services.
+				if (knownTypes[kvp.Key].Lifetime == ServiceLifetime.Singleton)
 				{
-					// Make sure the argument type is registered in _services (so we can create it) and no construction loops are detected.
-					if (!_services.ContainsKey(arg.ParameterType) || (callerTypes != null && callerTypes.Contains(arg.ParameterType)))
+					ValidateSingletonArguments(kvp.Value, knownTypes);
+				}
+			}
+		}
+
+		private void ValidateCtorLoops(Type serviceType, ConstructorInfo ctor, Dictionary<Type, ConstructorInfo> ctorTypes, HashSet<Type> callStack)
+		{
+			callStack.Add(serviceType);
+
+			foreach (var arg in ctor.GetParameters())
+			{
+				var argType = arg.ParameterType;
+
+				if (ctorTypes.TryGetValue(argType, out var argCtor))
+				{
+					if (callStack.Contains(argType))
 					{
-						argumentsValidated = false;
-						break;
+						throw new InvalidOperationException();
+					}
+
+					ValidateCtorLoops(argType, argCtor, ctorTypes, callStack);
+				}
+			}
+		}
+
+		private void ValidateSingletonArguments(ConstructorInfo ctor, Dictionary<Type, ServiceDescriptor> knownTypes)
+		{
+			foreach (var args in ctor.GetParameters())
+			{
+				var descriptor = knownTypes[args.ParameterType];
+
+				if (descriptor.Lifetime == ServiceLifetime.Scoped)
+				{
+					throw new InvalidOperationException();
+				}
+			}
+		}
+
+		private ConstructorInfo GetPreferredCtor(Type serviceType, Dictionary<Type, ServiceDescriptor> knownTypes)
+		{
+			var constructors = serviceType.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+
+			// Select the first public non-static ctor having all arguments registered.
+			foreach (var ctor in constructors)
+			{
+				if (!ctor.IsStatic)
+				{
+					var argumentsValidated = true;
+
+					foreach (var arg in ctor.GetParameters())
+					{
+						// Make sure the argument type is registered in _services (so we can create it).
+						if (!knownTypes.ContainsKey(arg.ParameterType))
+						{
+							argumentsValidated = false;
+							break;
+						}
+					}
+
+					if (argumentsValidated)
+					{
+						return ctor;
 					}
 				}
-
-				if (argumentsValidated)
-				{
-					return ctor;
-				}
 			}
 
-			return null;
+			throw new InvalidOperationException();
 		}
 
-		private object[] GetArguments(MethodBase method, ServiceScope scope)
+		private object GetSingletonService(IServiceFactory serviceFactory, ServiceScope scope)
 		{
-			Debug.Assert(method != null);
-
-			var parameters = method.GetParameters();
-			var args = new object[parameters.Length];
-
-			for (var i = 0; i < args.Length; ++i)
-			{
-				args[i] = GetService(parameters[i].ParameterType, scope);
-			}
-
-			return args;
-		}
-
-		private object GetSingletonService(ServiceDescriptor serviceDescriptor, ServiceScope scope)
-		{
-			Debug.Assert(serviceDescriptor != null);
+			Debug.Assert(serviceFactory != null);
 
 			// NOTE: Singleton is always created in the root scope.
-			if (_rootScope.TryGetResolvedService(serviceDescriptor.ServiceType, out var instance))
+			if (_rootScope.TryGetResolvedService(serviceFactory.ServiceType, out var instance))
 			{
 				return instance;
 			}
-			else if (serviceDescriptor.ImplementationType != null)
+			else
 			{
-				var service = CreateInstance(serviceDescriptor.ImplementationType, scope);
-				_rootScope.AddResolvedService(serviceDescriptor.ServiceType, service);
+				var service = serviceFactory.CreateInstance(scope);
+				_rootScope.AddResolvedService(serviceFactory.ServiceType, service);
 				return service;
 			}
-			else if (serviceDescriptor.ImplementationFactory != null)
-			{
-				var service = serviceDescriptor.ImplementationFactory(this);
-				_rootScope.AddResolvedService(serviceDescriptor.ServiceType, service);
-				return service;
-			}
-
-			// Should not get here.
-			Debug.Fail("Invalid service descriptor.");
-			throw new InvalidOperationException();
 		}
 
-		private object GetScopedService(ServiceDescriptor serviceDescriptor, ServiceScope scope)
+		private object GetScopedService(IServiceFactory serviceFactory, ServiceScope scope)
 		{
-			Debug.Assert(serviceDescriptor != null);
+			Debug.Assert(serviceFactory != null);
 
 			// NOTE: Scoped services are created in the caller scope.
-			if (_rootScope.TryGetResolvedService(serviceDescriptor.ServiceType, out var instance))
+			if (scope.TryGetResolvedService(serviceFactory.ServiceType, out var instance))
 			{
 				return instance;
 			}
-			else if (serviceDescriptor.ImplementationType != null)
+			else
 			{
-				var service = CreateInstance(serviceDescriptor.ImplementationType, scope);
-				scope.AddResolvedService(serviceDescriptor.ServiceType, service);
+				var service = serviceFactory.CreateInstance(scope);
+				scope.AddResolvedService(serviceFactory.ServiceType, service);
 				return service;
 			}
-			else if (serviceDescriptor.ImplementationFactory != null)
-			{
-				var service = serviceDescriptor.ImplementationFactory(this);
-				scope.AddResolvedService(serviceDescriptor.ServiceType, service);
-				return service;
-			}
-
-			// Should not get here.
-			Debug.Fail("Invalid service descriptor.");
-			throw new InvalidOperationException();
-		}
-
-		private object GetTransientService(ServiceDescriptor serviceDescriptor, ServiceScope scope)
-		{
-			Debug.Assert(serviceDescriptor != null);
-
-			if (serviceDescriptor.ImplementationType != null)
-			{
-				return CreateInstance(serviceDescriptor.ImplementationType, scope);
-			}
-			else if (serviceDescriptor.ImplementationFactory != null)
-			{
-				return serviceDescriptor.ImplementationFactory(this);
-			}
-
-			// Should not get here.
-			Debug.Fail("Invalid service descriptor.");
-			throw new InvalidOperationException();
 		}
 
 		#endregion

@@ -11,14 +11,17 @@ namespace UnityFx.DependencyInjection
 	public class ServiceProviderTests
 	{
 		[Fact]
-		public void GetService_Throws_ServiceNotFoundException()
+		public void GetService_ReturnsNullIfServiceNotFound()
 		{
 			// Arrange
 			var sc = new ServiceCollection();
-			var sp = new ServiceProvider(sc);
+			var sp = sc.BuildServiceProvider();
 
-			// Act/Assert
-			Assert.Throws<ServiceNotFoundException>(() => sp.GetService(typeof(IEnumerable)));
+			// Act
+			var result = sp.GetService(typeof(IEnumerable));
+
+			// Assert
+			Assert.Null(result);
 		}
 
 		[Theory]
@@ -32,10 +35,8 @@ namespace UnityFx.DependencyInjection
 			var sc = new ServiceCollection();
 			sc.Add(new ServiceDescriptor(type, type, ServiceLifetime.Transient));
 
-			var sp = new ServiceProvider(sc);
-
 			// Act/Assert
-			Assert.Throws<ServiceConstructorResolutionException>(() => sp.GetService(type));
+			Assert.Throws<InvalidOperationException>(() => sc.BuildServiceProvider());
 		}
 
 		[Fact]
@@ -45,7 +46,7 @@ namespace UnityFx.DependencyInjection
 			var sc = new ServiceCollection();
 			sc.Add(new ServiceDescriptor(typeof(IEnumerable), typeof(ArrayList), ServiceLifetime.Singleton));
 
-			var sp = new ServiceProvider(sc);
+			var sp = sc.BuildServiceProvider();
 
 			// Act
 			var instance1 = sp.GetService(typeof(IEnumerable));
@@ -64,7 +65,7 @@ namespace UnityFx.DependencyInjection
 			var sc = new ServiceCollection();
 			sc.Add(new ServiceDescriptor(typeof(IEnumerable), typeof(ArrayList), ServiceLifetime.Transient));
 
-			var sp = new ServiceProvider(sc);
+			var sp = sc.BuildServiceProvider();
 
 			// Act
 			var instance1 = sp.GetService(typeof(IEnumerable));
@@ -83,7 +84,7 @@ namespace UnityFx.DependencyInjection
 			var sc = new ServiceCollection();
 			sc.Add(new ServiceDescriptor(typeof(MultiCtorClass), typeof(MultiCtorClass), ServiceLifetime.Transient));
 
-			var sp = new ServiceProvider(sc);
+			var sp = sc.BuildServiceProvider();
 
 			// Act
 			var instance = sp.GetService(typeof(MultiCtorClass));

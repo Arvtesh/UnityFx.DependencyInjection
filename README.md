@@ -68,6 +68,7 @@ Please see the links below for extended information on the product:
 - [Dependency injection](https://en.wikipedia.org/wiki/Dependency_injection).
 - [Dependency injection in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection).
 - [Autofac](https://github.com/autofac/Autofac).
+- [Ninject](https://github.com/ninject/ninject).
 - [StrangeIoC](https://github.com/strangeioc/strangeioc).
 - [TinyIoC](https://github.com/grumpydev/TinyIoC).
 
