@@ -9,64 +9,58 @@ using System.Reflection;
 
 namespace UnityFx.DependencyInjection
 {
-	internal class ServiceProvider : IServiceProvider
+	internal class ServiceProvider : IServiceProvider, IServiceScope, IServiceScopeFactory
 	{
 		#region data
 
-		private readonly ServiceScope _scope;
+		private readonly ServiceProvider _parent;
 		private readonly Dictionary<Type, ServiceDescriptor> _services = new Dictionary<Type, ServiceDescriptor>();
+		private readonly Dictionary<Type, object> _serviceInstances = new Dictionary<Type, object>();
+		private bool _disposed;
 
 		#endregion
 
 		#region interface
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ServiceProvider"/> class.
-		/// </summary>
-		public ServiceProvider(ServiceScope scope)
+		internal ServiceProvider(ServiceProvider parent)
 		{
-			_scope = scope;
+			_parent = parent;
 		}
 
-		internal object GetService(Type serviceType, ServiceScope sourceScope, ICollection<Type> callerTypes)
+		internal object GetService(Type serviceType, ServiceProvider callerScope, ICollection<Type> callerTypes)
 		{
 			Debug.Assert(serviceType != null);
-			Debug.Assert(sourceScope != null);
+			Debug.Assert(callerScope != null);
 
-			if (serviceType == typeof(IServiceProvider))
+			if (serviceType == typeof(IServiceProvider) || serviceType == typeof(IServiceScope) || serviceType == typeof(IServiceScopeFactory))
 			{
 				return this;
-			}
-			else if (serviceType == typeof(IServiceScope) || serviceType == typeof(IServiceScopeFactory))
-			{
-				return _scope;
 			}
 			else if (_services.TryGetValue(serviceType, out var item))
 			{
 				switch (item.Lifetime)
 				{
 					case ServiceLifetime.Singleton:
-						return GetScopedService(item, _scope, callerTypes);
+						return GetSingletonService(item, callerScope, callerTypes);
 
 					case ServiceLifetime.Scoped:
-						return GetScopedService(item, sourceScope, callerTypes);
+						return GetScopedService(item, callerScope, callerTypes);
 
 					case ServiceLifetime.Transient:
-						return GetTransientService(item, callerTypes);
+						return GetTransientService(item, callerScope, callerTypes);
 
 					default:
 						throw new NotSupportedException(item.Lifetime.ToString());
 				}
 			}
 
-			return _scope.GetService(serviceType);
+			return _parent.GetService(serviceType, callerScope, callerTypes);
 		}
 
 		#endregion
 
 		#region IServiceProvider
 
-		/// <inheritdoc/>
 		public object GetService(Type serviceType)
 		{
 			if (serviceType == null)
@@ -74,14 +68,57 @@ namespace UnityFx.DependencyInjection
 				throw new ArgumentNullException(nameof(serviceType));
 			}
 
-			return GetService(serviceType, _scope, null);
+			return GetService(serviceType, this, null);
+		}
+
+		#endregion
+
+		#region IServiceScopeFactory
+
+		public IServiceScope CreateScope()
+		{
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(GetType().Name);
+			}
+
+			return new ServiceProvider(this);
+		}
+
+		#endregion
+
+		#region IServiceScope
+
+		IServiceProvider IServiceScope.ServiceProvider => this;
+
+		#endregion
+
+		#region IDisposable
+
+		public void Dispose()
+		{
+			if (!_disposed)
+			{
+				_disposed = true;
+
+				foreach (var service in _serviceInstances.Values)
+				{
+					if (service is IDisposable d)
+					{
+						d.Dispose();
+					}
+				}
+
+				_serviceInstances.Clear();
+				_services.Clear();
+			}
 		}
 
 		#endregion
 
 		#region implementation
 
-		private object CreateInstance(Type serviceType, ServiceScope scope, ICollection<Type> callerTypes)
+		private object CreateInstance(Type serviceType, ServiceProvider callerScope, ICollection<Type> callerTypes)
 		{
 			Debug.Assert(serviceType != null);
 
@@ -106,7 +143,7 @@ namespace UnityFx.DependencyInjection
 
 					if (ctor != null)
 					{
-						var args = GetArguments(ctor, scope, callerTypes);
+						var args = GetArguments(ctor, callerScope, callerTypes);
 						return ctor.Invoke(args);
 					}
 					else
@@ -153,7 +190,7 @@ namespace UnityFx.DependencyInjection
 			return null;
 		}
 
-		private object[] GetArguments(MethodBase method, ServiceScope sourceScope, ICollection<Type> callerTypes)
+		private object[] GetArguments(MethodBase method, ServiceProvider callerScope, ICollection<Type> callerTypes)
 		{
 			Debug.Assert(method != null);
 
@@ -162,30 +199,31 @@ namespace UnityFx.DependencyInjection
 
 			for (var i = 0; i < args.Length; ++i)
 			{
-				args[i] = GetService(parameters[i].ParameterType, sourceScope, callerTypes);
+				args[i] = GetService(parameters[i].ParameterType, callerScope, callerTypes);
 			}
 
 			return args;
 		}
 
-		private object GetScopedService(ServiceDescriptor serviceDescriptor, ServiceScope scope, ICollection<Type> callerTypes)
+		private object GetSingletonService(ServiceDescriptor serviceDescriptor, ServiceProvider callerScope, ICollection<Type> callerTypes)
 		{
 			Debug.Assert(serviceDescriptor != null);
 
-			if (_scope.TryGetServiceInstance(serviceDescriptor.ServiceType, out var instance))
+			// NOTE: Singleton is always created in the scope it was registered.
+			if (_serviceInstances.TryGetValue(serviceDescriptor.ServiceType, out var instance))
 			{
 				return instance;
 			}
 			else if (serviceDescriptor.ImplementationType != null)
 			{
-				var service = CreateInstance(serviceDescriptor.ImplementationType, scope, callerTypes);
-				scope.AddServiceInstance(serviceDescriptor.ServiceType, service);
+				var service = CreateInstance(serviceDescriptor.ImplementationType, callerScope, callerTypes);
+				_serviceInstances.Add(serviceDescriptor.ServiceType, service);
 				return service;
 			}
 			else if (serviceDescriptor.ImplementationFactory != null)
 			{
 				var service = serviceDescriptor.ImplementationFactory(this);
-				scope.AddServiceInstance(serviceDescriptor.ServiceType, service);
+				_serviceInstances.Add(serviceDescriptor.ServiceType, service);
 				return service;
 			}
 
@@ -194,13 +232,40 @@ namespace UnityFx.DependencyInjection
 			throw new InvalidOperationException();
 		}
 
-		private object GetTransientService(ServiceDescriptor serviceDescriptor, ICollection<Type> callerTypes)
+		private object GetScopedService(ServiceDescriptor serviceDescriptor, ServiceProvider callerScope, ICollection<Type> callerTypes)
+		{
+			Debug.Assert(serviceDescriptor != null);
+
+			// NOTE: Scoped services are created in the caller scope.
+			if (_serviceInstances.TryGetValue(serviceDescriptor.ServiceType, out var instance))
+			{
+				return instance;
+			}
+			else if (serviceDescriptor.ImplementationType != null)
+			{
+				var service = CreateInstance(serviceDescriptor.ImplementationType, callerScope, callerTypes);
+				callerScope._serviceInstances.Add(serviceDescriptor.ServiceType, service);
+				return service;
+			}
+			else if (serviceDescriptor.ImplementationFactory != null)
+			{
+				var service = serviceDescriptor.ImplementationFactory(this);
+				callerScope._serviceInstances.Add(serviceDescriptor.ServiceType, service);
+				return service;
+			}
+
+			// Should not get here.
+			Debug.Fail("Invalid service descriptor.");
+			throw new InvalidOperationException();
+		}
+
+		private object GetTransientService(ServiceDescriptor serviceDescriptor, ServiceProvider callerScope, ICollection<Type> callerTypes)
 		{
 			Debug.Assert(serviceDescriptor != null);
 
 			if (serviceDescriptor.ImplementationType != null)
 			{
-				return CreateInstance(serviceDescriptor.ImplementationType, callerTypes);
+				return CreateInstance(serviceDescriptor.ImplementationType, callerScope, callerTypes);
 			}
 			else if (serviceDescriptor.ImplementationFactory != null)
 			{

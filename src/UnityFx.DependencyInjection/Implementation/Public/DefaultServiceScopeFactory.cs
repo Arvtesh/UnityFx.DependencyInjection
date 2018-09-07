@@ -15,7 +15,7 @@ namespace UnityFx.DependencyInjection
 		/// <inheritdoc/>
 		public IServiceScope CreateScope()
 		{
-			return new ServiceScope(null);
+			return new ServiceProvider(null);
 		}
 
 		#endregion
