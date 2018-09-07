@@ -132,5 +132,14 @@ namespace UnityFx.DependencyInjection
 		{
 			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Scoped));
 		}
+
+		/// <summary>
+		/// Creates a <see cref="ServiceProvider"/> containing services from the provided <see cref="IServiceCollection"/>.
+		/// </summary>
+		/// <param name="services">The source <see cref="IServiceCollection"/> containing service descriptors.</param>
+		public static ServiceProvider BuildServiceProvider(this IServiceCollection services)
+		{
+			return new ServiceProvider(services);
+		}
 	}
 }

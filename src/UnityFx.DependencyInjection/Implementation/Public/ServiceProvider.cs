@@ -9,7 +9,10 @@ using System.Reflection;
 
 namespace UnityFx.DependencyInjection
 {
-	internal class ServiceProvider : IServiceProvider, IServiceScopeFactory, IDisposable
+	/// <summary>
+	/// Default implementatino for <see cref="IServiceProvider"/>.
+	/// </summary>
+	public sealed class ServiceProvider : IServiceProvider, IServiceScopeFactory, IDisposable
 	{
 		#region data
 
@@ -21,7 +24,10 @@ namespace UnityFx.DependencyInjection
 
 		#region interface
 
-		internal ServiceProvider(IEnumerable<ServiceDescriptor> serviceDescriptors)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ServiceProvider"/> class.
+		/// </summary>
+		public ServiceProvider(IEnumerable<ServiceDescriptor> serviceDescriptors)
 		{
 			_rootScope = new ServiceScope(this);
 
@@ -66,6 +72,7 @@ namespace UnityFx.DependencyInjection
 
 		#region IServiceProvider
 
+		/// <inheritdoc/>
 		public object GetService(Type serviceType)
 		{
 			if (serviceType == null)
@@ -85,7 +92,8 @@ namespace UnityFx.DependencyInjection
 
 		#region IServiceScopeFactory
 
-		public IServiceScope CreateScope()
+		/// <inheritdoc/>
+		IServiceScope IServiceScopeFactory.CreateScope()
 		{
 			if (_disposed)
 			{
@@ -99,6 +107,7 @@ namespace UnityFx.DependencyInjection
 
 		#region IDisposable
 
+		/// <inheritdoc/>
 		public void Dispose()
 		{
 			if (!_disposed)

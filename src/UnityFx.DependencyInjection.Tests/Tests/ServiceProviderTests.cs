@@ -14,7 +14,8 @@ namespace UnityFx.DependencyInjection
 		public void GetService_Throws_ServiceNotFoundException()
 		{
 			// Arrange
-			var sp = new ServiceProvider();
+			var sc = new ServiceCollection();
+			var sp = new ServiceProvider(sc);
 
 			// Act/Assert
 			Assert.Throws<ServiceNotFoundException>(() => sp.GetService(typeof(IEnumerable)));
@@ -28,8 +29,10 @@ namespace UnityFx.DependencyInjection
 		public void GetService_Throws_ServiceConstructorResolutionException(Type type)
 		{
 			// Arrange
-			var sp = new ServiceProvider();
-			sp.Add(new ServiceDescriptor(type, type, ServiceLifetime.Transient));
+			var sc = new ServiceCollection();
+			sc.Add(new ServiceDescriptor(type, type, ServiceLifetime.Transient));
+
+			var sp = new ServiceProvider(sc);
 
 			// Act/Assert
 			Assert.Throws<ServiceConstructorResolutionException>(() => sp.GetService(type));
@@ -39,8 +42,10 @@ namespace UnityFx.DependencyInjection
 		public void GetService_CreatesOnlyOneSingletonInstance()
 		{
 			// Arrange
-			var sp = new ServiceProvider();
-			sp.Add(new ServiceDescriptor(typeof(IEnumerable), typeof(ArrayList), ServiceLifetime.Singleton));
+			var sc = new ServiceCollection();
+			sc.Add(new ServiceDescriptor(typeof(IEnumerable), typeof(ArrayList), ServiceLifetime.Singleton));
+
+			var sp = new ServiceProvider(sc);
 
 			// Act
 			var instance1 = sp.GetService(typeof(IEnumerable));
@@ -56,8 +61,10 @@ namespace UnityFx.DependencyInjection
 		public void GetService_CreatesManyTransientInstances()
 		{
 			// Arrange
-			var sp = new ServiceProvider();
-			sp.Add(new ServiceDescriptor(typeof(IEnumerable), typeof(ArrayList), ServiceLifetime.Transient));
+			var sc = new ServiceCollection();
+			sc.Add(new ServiceDescriptor(typeof(IEnumerable), typeof(ArrayList), ServiceLifetime.Transient));
+
+			var sp = new ServiceProvider(sc);
 
 			// Act
 			var instance1 = sp.GetService(typeof(IEnumerable));
@@ -73,8 +80,10 @@ namespace UnityFx.DependencyInjection
 		public void GetService_ResolvesMultipleCtors()
 		{
 			// Arrange
-			var sp = new ServiceProvider();
-			sp.Add(new ServiceDescriptor(typeof(MultiCtorClass), typeof(MultiCtorClass), ServiceLifetime.Transient));
+			var sc = new ServiceCollection();
+			sc.Add(new ServiceDescriptor(typeof(MultiCtorClass), typeof(MultiCtorClass), ServiceLifetime.Transient));
+
+			var sp = new ServiceProvider(sc);
 
 			// Act
 			var instance = sp.GetService(typeof(MultiCtorClass));
