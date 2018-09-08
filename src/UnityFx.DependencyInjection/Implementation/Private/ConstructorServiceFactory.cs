@@ -6,6 +6,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+#if !NET35
+using System.Runtime.ExceptionServices;
+#endif
 
 namespace UnityFx.DependencyInjection
 {
@@ -61,6 +64,9 @@ namespace UnityFx.DependencyInjection
 			}
 			catch (TargetInvocationException e)
 			{
+#if !NET35
+				ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+#endif
 				throw e.InnerException;
 			}
 		}
