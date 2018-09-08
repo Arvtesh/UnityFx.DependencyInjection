@@ -90,24 +90,43 @@ namespace UnityFx.DependencyInjection
 						{
 							var argInfo = ctor.GetParameters();
 							var argValues = new object[argInfo.Length];
-							var matchCount = 0;
+							var argumentsValidated = true;
 
 							for (var i = 0; i < argInfo.Length; ++i)
 							{
 								var argType = argInfo[i].ParameterType;
+								var argValue = default(object);
 
+								// Try to match the argument using args first.
 								for (var j = 0; j < args.Length; ++j)
 								{
 									if (argType.IsAssignableFrom(args[j].GetType()))
 									{
-										argValues[i] = args[j];
-										++matchCount;
+										argValue = args[j];
+										break;
 									}
+								}
+
+								// If argument matching failed try to resolve the argument using serviceProvider.
+								if (argValue == null)
+								{
+									argValue = serviceProvider.GetService(argType);
+								}
+
+								// If the argument is matched/resolved, store the value, otherwise fail the constructor validation.
+								if (argValue != null)
+								{
+									argValues[i] = argValue;
+								}
+								else
+								{
+									argumentsValidated = false;
+									break;
 								}
 							}
 
-							// If all arguments matched, use this constructor for activation.
-							if (matchCount == argInfo.Length)
+							// If all arguments matched/resolved, use this constructor for activation.
+							if (argumentsValidated)
 							{
 								return ctor.Invoke(argValues);
 							}
@@ -140,6 +159,21 @@ namespace UnityFx.DependencyInjection
 		public static T CreateInstance<T>(this IServiceProvider serviceProvider, params object[] args)
 		{
 			return (T)CreateInstance(serviceProvider, typeof(T), args);
+		}
+
+		/// <summary>
+		/// Injects dependencies from <paramref name="serviceProvider"/> into properties of the specified object instance.
+		/// </summary>
+		/// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
+		/// <param name="target">The target object instance for property injection.</param>
+		public static void Inject(this IServiceProvider serviceProvider, object target)
+		{
+			if (target == null)
+			{
+				throw new ArgumentNullException(nameof(target));
+			}
+
+			throw new NotImplementedException();
 		}
 	}
 }

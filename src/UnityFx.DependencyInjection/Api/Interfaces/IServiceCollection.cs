@@ -11,11 +11,19 @@ namespace UnityFx.DependencyInjection
 	/// </summary>
 	/// <seealso cref="ServiceDescriptor"/>
 	/// <seealso cref="IServiceProvider"/>
-#if NET35
 	public interface IServiceCollection : ICollection<ServiceDescriptor>
-#else
-	public interface IServiceCollection : ICollection<ServiceDescriptor>, IReadOnlyCollection<ServiceDescriptor>
-#endif
 	{
+		/// <summary>
+		/// Determines whether the collection contains a service having specific type.
+		/// </summary>
+		/// <param name="serviceType">The service type to check for.</param>
+		/// <returns>Returns <see langword="true"/> if the collection contains service of type <paramref name="serviceType"/>; <see langword="false"/> otherwise.</returns>
+		bool Contains(Type serviceType);
+
+		/// <summary>
+		/// Removes the first service of type <paramref name="serviceType"/> from the collection.
+		/// </summary>
+		/// <param name="serviceType">The service type to remove.</param>
+		bool Remove(Type serviceType);
 	}
 }

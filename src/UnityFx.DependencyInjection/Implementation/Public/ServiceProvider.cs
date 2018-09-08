@@ -102,7 +102,7 @@ namespace UnityFx.DependencyInjection
 		private void InitServices(IEnumerable<ServiceDescriptor> serviceDescriptors, bool validate)
 		{
 			var knownTypes = new Dictionary<Type, ServiceDescriptor>();
-			var constructorTypes = new Dictionary<Type, ConstructorInfo>();
+			var constructorTypes = validate ? new Dictionary<Type, ConstructorInfo>() : null;
 
 			foreach (var descriptor in serviceDescriptors)
 			{
@@ -124,13 +124,19 @@ namespace UnityFx.DependencyInjection
 				if (descriptor.ImplementationInstance != null)
 				{
 					_services.Add(serviceType, new InstanceServiceFactory(serviceType, descriptor.ImplementationInstance));
+					_rootScope.AddResolvedService(serviceType, descriptor.ImplementationInstance);
 				}
 				else if (descriptor.ImplementationType != null)
 				{
 					var ctor = GetPreferredCtor(descriptor.ImplementationType, knownTypes);
 
-					if (ctor != null)
+					if (ctor != null && validate)
 					{
+						if (constructorTypes == null)
+						{
+							constructorTypes = new Dictionary<Type, ConstructorInfo>();
+						}
+
 						constructorTypes.Add(serviceType, ctor);
 					}
 
