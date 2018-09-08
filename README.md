@@ -8,7 +8,7 @@ Github | [![GitHub release](https://img.shields.io/github/release/Arvtesh/UnityF
 
 ## Synopsis
 
-*UnityFx.DependencyInjection* is a lightweight ASP.NET-like dependency injection framework for Unity. It provides an implementation of [IServiceProvider](https://docs.microsoft.com/en-us/dotnet/api/system.iserviceprovider) interface and a lot of tools for dependency management. It only supports constructor injection. The project has an API very similar to [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection).
+*UnityFx.DependencyInjection* is a lightweight ASP.NET-like dependency injection framework for Unity. It provides an implementation of [IServiceProvider](https://docs.microsoft.com/en-us/dotnet/api/system.iserviceprovider) interface and many tools for dependency management. The project has an API very similar to [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection).
 
 ## Getting Started
 ### Prerequisites
@@ -32,7 +32,7 @@ This fundamental requirement means that using values (services) produced within 
 
 The intent behind dependency injection is to decouple objects to the extent that no client code has to be changed simply because an object it depends on needs to be changed to a different one.
 
-Dependency injection is one form of the broader technique of [inversion of control](https://en.wikipedia.org/wiki/Inversion_of_control). As with other forms of inversion of control, dependency injection supports the [dependency inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle). The client delegates the responsibility of providing its dependencies to external code (the injector). The client is not allowed to call the injector code; it is the injecting code that constructs the services and calls the client to inject them. This means the client code does not need to know about the injecting code, how to construct the services or even which actual services it is using; the client only needs to know about the intrinsic interfaces of the services because these define how the client may use the services. This separates the responsibilities of use and construction. 
+Dependency injection is one form of the broader technique of [inversion of control](https://en.wikipedia.org/wiki/Inversion_of_control). As with other forms of inversion of control, dependency injection supports the [dependency inversion principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle). The client delegates the responsibility of providing its dependencies to external code (the injector). The client is not allowed to call the injector code; it is the injecting code that constructs the services and calls the client to inject them. This means the client code does not need to know about the injecting code, how to construct the services or even which actual services it is using; the client only needs to know about the intrinsic interfaces of the services because these define how the client may use the services. This separates the responsibilities of use and construction.
 
 Dependency injection involves four roles:
 * The *service* object(s) to be used.
@@ -54,6 +54,31 @@ Reference the DLL (NuGet package) and import the namespace:
 ```csharp
 using UnityFx.DependencyInjection;
 ```
+Initialize service descriptors and build a service provider:
+```csharp
+var serviceCollection = new ServiceCollection();
+serviceCollection.AddSingleton<IMyService>(new MyService());
+serviceCollection.AddTransient<IMyService2, MyService2>();
+serviceCollection.AddScoped<IMyService3>(sp => new MyService3());
+// Add more services here.
+var serviceProvider = serviceCollection.BuildServiceProvider();
+```
+Note that once service provider is created, there is no way to register new services in it. Now you can use the created service provider to resolve the registered services:
+```csharp
+var myService = serviceProvider.GetService<IMyService>();
+```
+There are serveral services registered in a service provider by default:
+- `IServiceProvider`
+- `IServiceScope`
+- `IServiceScopeFactory`
+
+### Service lifetimes
+Just like in [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection) the following service lifetimes supported:
+- *Transient*. Transient lifetime services are created each time they're requested. This lifetime works best for lightweight, stateless services.
+- *Scoped*. Scoped lifetime services are created once per scope (and disposed with the parent scope).
+- *Singleton*. Singleton lifetime services are created the first time they're requested. Every subsequent request uses the same instance. If the app requires singleton behavior, allowing the service container to manage the service's lifetime is recommended.
+
+### Service scopes
 TODO
 
 ## Motivation
