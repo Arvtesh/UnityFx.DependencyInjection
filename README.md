@@ -8,7 +8,16 @@ Github | [![GitHub release](https://img.shields.io/github/release/Arvtesh/UnityF
 
 ## Synopsis
 
-*UnityFx.DependencyInjection* is a lightweight ASP.NET-like dependency injection framework for Unity. It provides an implementation of [IServiceProvider](https://docs.microsoft.com/en-us/dotnet/api/system.iserviceprovider) interface and many tools for dependency management. The project has an API very similar to [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection).
+*UnityFx.DependencyInjection* is a minimalistic lightweight [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection)-like dependency injection framework for [Unity3d](https://unity3d.com). It provides almost the same API as [Microsoft.Extensions.DependencyInjection.Abstractions](https://github.com/aspnet/DependencyInjection) but supports `net35` target, property injection and much simpler implementation.
+
+Features:
+- Constructor injection.
+- Property injection.
+- Injection scopes.
+- ASP.NET-like minimalistic interface.
+- Scopes/loops validation on service initialization (can be disabled).
+- Lightweight implementation.
+- Unity3d compatibility (`net35` target support, property injection for `MonoBehaviour`s, etc).
 
 ## Getting Started
 ### Prerequisites
@@ -79,10 +88,26 @@ Just like in [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals
 - *Singleton*. Singleton lifetime services are created the first time they're requested. Every subsequent request uses the same instance. If the app requires singleton behavior, allowing the service container to manage the service's lifetime is recommended.
 
 ### Service scopes
-TODO
+A new scope can be created using `IServiceScopeFactory`:
+```csharp
+var scope = serviceProvider.GetService<IServiceScopeFactory>().CreateScope();
+var scopeServiceProvider = scope.ServiceProvider;
+```
+ The [Dispose](https://docs.microsoft.com/en-us/dotnet/api/system.idisposable.dispose) method ends the scope lifetime. Once it is called, any scoped services that have been resolved from [IServiceProvider](https://docs.microsoft.com/en-us/dotnet/api/system.iserviceprovider) will be disposed.
+
+### Unsupported features:
+The built-in service container implementation is meant to serve the common needs of the most consumer apps. We recommend using the built-in container unless you need a specific feature that it doesn't support. Some of the features supported in 3rd party containers not found in the built-in container:
+- Injection based on name.
+- Child containers.
+- Custom lifetime management.
 
 ## Motivation
-TODO
+Every .NET developer should implement own dependency injection container at least once :). Jokes aside DI has become an industry standard tool for dependency management of any non-trivial application. Unity3d has no built-in DI and all 3rd party container I saw have at least several issues for me:
+- They often include much stuff besided DI itself (hello [StrangeIoC](https://github.com/strangeioc/strangeioc)).
+- While powerful they tend to be quite complex while most applications (well, most of my applications) need just a tiny bit of that ([Autofac](https://github.com/autofac/Autofac), [Ninject](https://github.com/ninject/ninject)).
+- I like [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection) approach the most, but the implementation does not support `net35` target (still used a lot for Unity) and it still seems too complex for my needs.
+
+That's why I decided to write my own DI framework that provides almost the same API as [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection) but much simplier implementation that supports `net35` target.
 
 ## Documentation
 Please see the links below for extended information on the product:
@@ -94,6 +119,7 @@ Please see the links below for extended information on the product:
 - [Dependency injection in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection).
 - [Autofac](https://github.com/autofac/Autofac).
 - [Ninject](https://github.com/ninject/ninject).
+- [SimpleInjector](https://github.com/simpleinjector/SimpleInjector).
 - [StrangeIoC](https://github.com/strangeioc/strangeioc).
 - [TinyIoC](https://github.com/grumpydev/TinyIoC).
 
@@ -109,5 +135,5 @@ Please see the [![license](https://img.shields.io/github/license/Arvtesh/UnityFx
 ## Acknowledgments
 Working on this project is a great experience. Please see below list of sources of my inspiration (in no particular order):
 * [ASP.NET source](https://github.com/aspnet/DependencyInjection). A great source of knowledge and good programming practices.
-- [TinyIoC source](https://github.com/grumpydev/TinyIoC). The most lightweight IoC container out there.
+* [TinyIoC source](https://github.com/grumpydev/TinyIoC). The most lightweight IoC container out there.
 * Everyone who ever commented or left any feedback on the project. It's always very helpful.
