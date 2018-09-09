@@ -12,12 +12,11 @@ Github | [![GitHub release](https://img.shields.io/github/release/Arvtesh/UnityF
 
 Features:
 - Constructor injection.
-- Property injection.
 - Injection scopes.
 - ASP.NET-like minimalistic interface.
 - Scopes/loops validation on service initialization (can be disabled).
 - Lightweight implementation.
-- Unity3d compatibility (`net35` target support, property injection for `MonoBehaviour`s, etc).
+- Unity3d compatibility (`net35` target support).
 
 ## Getting Started
 ### Prerequisites
@@ -97,13 +96,14 @@ var scopeServiceProvider = scope.ServiceProvider;
 
 ### Unsupported features:
 The built-in service container implementation is meant to serve the common needs of the most consumer apps. We recommend using the built-in container unless you need a specific feature that it doesn't support. Some of the features supported in 3rd party containers not found in the built-in container:
+- Property/method injection.
 - Injection based on name.
 - Child containers.
 - Custom lifetime management.
 
 ## Motivation
 Every .NET developer should implement own dependency injection container at least once :). Jokes aside DI has become an industry standard tool for dependency management of any non-trivial application. Unity3d has no built-in DI and all 3rd party container I saw have at least several issues for me:
-- They often include much stuff besided DI itself (hello [StrangeIoC](https://github.com/strangeioc/strangeioc)).
+- They often include much stuff besided DI itself ([StrangeIoC](https://github.com/strangeioc/strangeioc)).
 - While powerful they tend to be quite complex while most applications (well, most of my applications) need just a tiny bit of that ([Autofac](https://github.com/autofac/Autofac), [Ninject](https://github.com/ninject/ninject)).
 - I like [ASP.NET](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection) approach the most, but the implementation does not support `net35` target (still used a lot for Unity) and it still seems too complex for my needs.
 
