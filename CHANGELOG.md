@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/); this proj
 - Added scopes support (`IServiceScope`, `IServiceScopeFactory`).
 - Added `CreateInstance()` extensions to `IServiceProvider`.
 - Added `GetRequiredService()` extensions to `IServiceProvider`.
+- Added `Contains()` and `Remove()` overloads to `IServiceContainer`.
 
 ### Changed
 - Changed namespace to `UnityFx.DependencyInjection`.
