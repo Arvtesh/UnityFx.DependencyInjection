@@ -98,8 +98,23 @@ namespace UnityFx.DependencyInjection
 		/// <exception cref="ArgumentNullException">Thrown if either <paramref name="serviceType"/> or <paramref name="implementationType"/> is <see langword="null"/>.</exception>
 		public ServiceDescriptor(Type serviceType, Type implementationType, ServiceLifetime lifetime)
 		{
-			_serviceType = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
-			_implementationType = implementationType ?? throw new ArgumentNullException(nameof(implementationType));
+			if (serviceType == null)
+			{
+				throw new ArgumentNullException(nameof(serviceType));
+			}
+
+			if (implementationType == null)
+			{
+				throw new ArgumentNullException(nameof(implementationType));
+			}
+
+			if (implementationType.IsAbstract || implementationType.IsInterface)
+			{
+				throw new ArgumentException("Implementatino type should not be and asbtract type or interface.", nameof(implementationType));
+			}
+
+			_serviceType = serviceType;
+			_implementationType = implementationType;
 			_serviceLifetime = lifetime;
 		}
 
