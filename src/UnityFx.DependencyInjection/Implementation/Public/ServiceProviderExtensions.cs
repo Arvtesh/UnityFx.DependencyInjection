@@ -86,50 +86,47 @@ namespace UnityFx.DependencyInjection
 					// Select the first public non-static ctor with matching arguments.
 					foreach (var ctor in constructors)
 					{
-						if (!ctor.IsStatic)
+						var argInfo = ctor.GetParameters();
+						var argValues = new object[argInfo.Length];
+						var argumentsValidated = true;
+
+						for (var i = 0; i < argInfo.Length; ++i)
 						{
-							var argInfo = ctor.GetParameters();
-							var argValues = new object[argInfo.Length];
-							var argumentsValidated = true;
+							var argType = argInfo[i].ParameterType;
+							var argValue = default(object);
 
-							for (var i = 0; i < argInfo.Length; ++i)
+							// Try to match the argument using args first.
+							for (var j = 0; j < args.Length; ++j)
 							{
-								var argType = argInfo[i].ParameterType;
-								var argValue = default(object);
-
-								// Try to match the argument using args first.
-								for (var j = 0; j < args.Length; ++j)
+								if (argType.IsAssignableFrom(args[j].GetType()))
 								{
-									if (argType.IsAssignableFrom(args[j].GetType()))
-									{
-										argValue = args[j];
-										break;
-									}
-								}
-
-								// If argument matching failed try to resolve the argument using serviceProvider.
-								if (argValue == null)
-								{
-									argValue = serviceProvider.GetService(argType);
-								}
-
-								// If the argument is matched/resolved, store the value, otherwise fail the constructor validation.
-								if (argValue != null)
-								{
-									argValues[i] = argValue;
-								}
-								else
-								{
-									argumentsValidated = false;
+									argValue = args[j];
 									break;
 								}
 							}
 
-							// If all arguments matched/resolved, use this constructor for activation.
-							if (argumentsValidated)
+							// If argument matching failed try to resolve the argument using serviceProvider.
+							if (argValue == null)
 							{
-								return ctor.Invoke(argValues);
+								argValue = serviceProvider.GetService(argType);
 							}
+
+							// If the argument is matched/resolved, store the value, otherwise fail the constructor validation.
+							if (argValue != null)
+							{
+								argValues[i] = argValue;
+							}
+							else
+							{
+								argumentsValidated = false;
+								break;
+							}
+						}
+
+						// If all arguments matched/resolved, use this constructor for activation.
+						if (argumentsValidated)
+						{
+							return ctor.Invoke(argValues);
 						}
 					}
 
@@ -166,7 +163,72 @@ namespace UnityFx.DependencyInjection
 		/// </summary>
 		/// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
 		/// <param name="target">The target object instance for property injection.</param>
-		public static void Inject(this IServiceProvider serviceProvider, object target)
+		/// <param name="args">Constructor arguments not provided by the <paramref name="serviceProvider"/>.</param>
+		/// <seealso cref="InjectMethod(IServiceProvider, string, object, object[])"/>
+		public static void InjectProperties(this IServiceProvider serviceProvider, object target, params object[] args)
+		{
+			if (target == null)
+			{
+				throw new ArgumentNullException(nameof(target));
+			}
+
+			try
+			{
+				var properties = target.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+				if (properties.Length > 0)
+				{
+					foreach (var prop in properties)
+					{
+						var setter = prop.GetSetMethod();
+
+						if (setter != null)
+						{
+							var argValue = default(object);
+
+							// Try to match the property using args first.
+							foreach (var arg in args)
+							{
+								if (prop.PropertyType.IsAssignableFrom(arg.GetType()))
+								{
+									argValue = arg;
+									break;
+								}
+							}
+
+							// If argument matching failed try to resolve the property using serviceProvider.
+							if (argValue == null)
+							{
+								argValue = serviceProvider.GetService(prop.PropertyType);
+							}
+
+							// If value is matched/resolved pass it to the target.
+							if (argValue != null)
+							{
+								prop.SetValue(target, argValue, null);
+							}
+						}
+					}
+				}
+			}
+			catch (TargetInvocationException e)
+			{
+#if !NET35
+				ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+#endif
+				throw e.InnerException;
+			}
+		}
+
+		/// <summary>
+		/// Injects dependencies from <paramref name="serviceProvider"/> into the specified method of an object instance.
+		/// </summary>
+		/// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
+		/// <param name="methodName">Name of a method to call.</param>
+		/// <param name="target">The target object instance for property injection.</param>
+		/// <param name="args">Constructor arguments not provided by the <paramref name="serviceProvider"/>.</param>
+		/// <seealso cref="InjectProperties(IServiceProvider, object, object[])"/>
+		public static void InjectMethod(this IServiceProvider serviceProvider, string methodName, object target, params object[] args)
 		{
 			if (target == null)
 			{
