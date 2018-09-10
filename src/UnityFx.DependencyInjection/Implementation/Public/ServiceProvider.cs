@@ -118,7 +118,7 @@ namespace UnityFx.DependencyInjection
 					serviceType == typeof(IServiceScope) ||
 					serviceType == typeof(IServiceScopeFactory))
 				{
-					throw new InvalidOperationException();
+					throw new InvalidOperationException(Messages.FormatRequiredServiceRegistration(serviceType));
 				}
 
 				if (descriptor.ImplementationInstance != null)
@@ -148,7 +148,7 @@ namespace UnityFx.DependencyInjection
 				}
 				else
 				{
-					throw new InvalidOperationException();
+					throw new InvalidOperationException(Messages.FormatInvalidServiceDescriptor(serviceType));
 				}
 			}
 
@@ -189,7 +189,7 @@ namespace UnityFx.DependencyInjection
 				{
 					if (callStack.Contains(argType))
 					{
-						throw new InvalidOperationException();
+						throw new InvalidOperationException(Messages.FormatDependencyLoop(serviceType, argType));
 					}
 
 					ValidateCtorLoops(argType, argCtor, ctorTypes, callStack);
@@ -205,7 +205,7 @@ namespace UnityFx.DependencyInjection
 
 				if (descriptor.Lifetime == ServiceLifetime.Scoped)
 				{
-					throw new InvalidOperationException();
+					throw new InvalidOperationException(Messages.FormatSingletonArgumentScope(ctor.DeclaringType, args.ParameterType));
 				}
 			}
 		}
@@ -238,7 +238,7 @@ namespace UnityFx.DependencyInjection
 				}
 			}
 
-			throw new InvalidOperationException();
+			throw new InvalidOperationException(Messages.FormatNoConstructorApplicable(serviceType));
 		}
 
 		private object GetSingletonService(IServiceFactory serviceFactory, ServiceScope scope)

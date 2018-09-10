@@ -94,7 +94,7 @@ namespace UnityFx.DependencyInjection
 						}
 					}
 
-					throw new InvalidOperationException();
+					throw new InvalidOperationException(Messages.FormatNoConstructorApplicable(instanceType));
 				}
 				else
 				{

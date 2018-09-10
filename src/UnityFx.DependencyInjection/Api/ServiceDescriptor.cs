@@ -110,7 +110,7 @@ namespace UnityFx.DependencyInjection
 
 			if (implementationType.IsAbstract || implementationType.IsInterface)
 			{
-				throw new ArgumentException("Implementatino type should not be and asbtract type or interface.", nameof(implementationType));
+				throw new ArgumentException(Messages.FormatImplementationTypeIsAbstract(serviceType, implementationType));
 			}
 
 			_serviceType = serviceType;
