@@ -16,6 +16,8 @@ namespace UnityFx.DependencyInjection
 	[EditorBrowsable(EditorBrowsableState.Advanced)]
 	public static class ServiceProviderExtensions
 	{
+		#region interface
+
 		/// <summary>
 		/// Returns an instance of a service for the type specified.
 		/// </summary>
@@ -86,45 +88,7 @@ namespace UnityFx.DependencyInjection
 					// Select the first public non-static ctor with matching arguments.
 					foreach (var ctor in constructors)
 					{
-						var argInfo = ctor.GetParameters();
-						var argValues = new object[argInfo.Length];
-						var argumentsValidated = true;
-
-						for (var i = 0; i < argInfo.Length; ++i)
-						{
-							var argType = argInfo[i].ParameterType;
-							var argValue = default(object);
-
-							// Try to match the argument using args first.
-							for (var j = 0; j < args.Length; ++j)
-							{
-								if (argType.IsAssignableFrom(args[j].GetType()))
-								{
-									argValue = args[j];
-									break;
-								}
-							}
-
-							// If argument matching failed try to resolve the argument using serviceProvider.
-							if (argValue == null)
-							{
-								argValue = serviceProvider.GetService(argType);
-							}
-
-							// If the argument is matched/resolved, store the value, otherwise fail the constructor validation.
-							if (argValue != null)
-							{
-								argValues[i] = argValue;
-							}
-							else
-							{
-								argumentsValidated = false;
-								break;
-							}
-						}
-
-						// If all arguments matched/resolved, use this constructor for activation.
-						if (argumentsValidated)
+						if (TryGetMethodArguments(ctor, serviceProvider, args, out var argValues))
 						{
 							return ctor.Invoke(argValues);
 						}
@@ -164,7 +128,7 @@ namespace UnityFx.DependencyInjection
 		/// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
 		/// <param name="target">The target object instance for property injection.</param>
 		/// <param name="args">Constructor arguments not provided by the <paramref name="serviceProvider"/>.</param>
-		/// <seealso cref="InjectMethod(IServiceProvider, string, object, object[])"/>
+		/// <seealso cref="InjectMethod(IServiceProvider, object, string, object[])"/>
 		public static void InjectProperties(this IServiceProvider serviceProvider, object target, params object[] args)
 		{
 			if (target == null)
@@ -224,18 +188,95 @@ namespace UnityFx.DependencyInjection
 		/// Injects dependencies from <paramref name="serviceProvider"/> into the specified method of an object instance.
 		/// </summary>
 		/// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
-		/// <param name="methodName">Name of a method to call.</param>
 		/// <param name="target">The target object instance for property injection.</param>
+		/// <param name="methodName">Name of a method to call.</param>
 		/// <param name="args">Constructor arguments not provided by the <paramref name="serviceProvider"/>.</param>
 		/// <seealso cref="InjectProperties(IServiceProvider, object, object[])"/>
-		public static void InjectMethod(this IServiceProvider serviceProvider, string methodName, object target, params object[] args)
+		public static void InjectMethod(this IServiceProvider serviceProvider, object target, string methodName, params object[] args)
 		{
 			if (target == null)
 			{
 				throw new ArgumentNullException(nameof(target));
 			}
 
-			throw new NotImplementedException();
+			try
+			{
+				var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
+
+				if (method != null)
+				{
+					if (TryGetMethodArguments(method, serviceProvider, args, out var argValues))
+					{
+						method.Invoke(target, argValues);
+					}
+					else
+					{
+						throw new InvalidOperationException();
+					}
+				}
+			}
+			catch (TargetInvocationException e)
+			{
+#if !NET35
+				ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+#endif
+				throw e.InnerException;
+			}
 		}
+
+		#endregion
+
+		#region implementation
+
+		private static bool TryGetMethodArguments(MethodBase method, IServiceProvider serviceProvider, object[] args, out object[] argValues)
+		{
+			var argInfo = method.GetParameters();
+			var argumentsValidated = true;
+
+			argValues = new object[argInfo.Length];
+
+			for (var i = 0; i < argInfo.Length; ++i)
+			{
+				var argType = argInfo[i].ParameterType;
+				var argValue = default(object);
+
+				// Try to match the argument using args first.
+				for (var j = 0; j < args.Length; ++j)
+				{
+					if (argType.IsAssignableFrom(args[j].GetType()))
+					{
+						argValue = args[j];
+						break;
+					}
+				}
+
+				// If argument matching failed try to resolve the argument using serviceProvider.
+				if (argValue == null)
+				{
+					argValue = serviceProvider.GetService(argType);
+				}
+
+				// If the argument is matched/resolved, store the value, otherwise fail the constructor validation.
+				if (argValue != null)
+				{
+					argValues[i] = argValue;
+				}
+				else
+				{
+					argumentsValidated = false;
+					break;
+				}
+			}
+
+			// If all arguments matched/resolved, use this constructor for activation.
+			if (argumentsValidated)
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		#endregion
 	}
 }
