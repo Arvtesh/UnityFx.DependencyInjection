@@ -3,6 +3,9 @@
 
 using System;
 using System.Collections;
+#if !NET35
+using System.Collections.Concurrent;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -13,7 +16,11 @@ namespace UnityFx.DependencyInjection
 		#region data
 
 		private readonly ServiceProvider _serviceProvider;
+#if NET35
 		private readonly Dictionary<Type, object> _resolvedServices = new Dictionary<Type, object>();
+#else
+		private readonly ConcurrentDictionary<Type, object> _resolvedServices = new ConcurrentDictionary<Type, object>();
+#endif
 		private bool _disposed;
 
 		#endregion
@@ -31,18 +38,40 @@ namespace UnityFx.DependencyInjection
 
 			foreach (var kvp in resolvedServices)
 			{
+#if NET35
 				_resolvedServices.Add(kvp.Key, kvp.Value);
+#else
+				_resolvedServices.TryAdd(kvp.Key, kvp.Value);
+#endif
 			}
 		}
 
 		internal void AddResolvedService(Type serviceType, object serviceInstance)
 		{
-			_resolvedServices.Add(serviceType, serviceInstance);
+			Debug.Assert(!_disposed);
+
+#if NET35
+			lock (_resolvedServices)
+			{
+				_resolvedServices.Add(serviceType, serviceInstance);
+			}
+#else
+			_resolvedServices.TryAdd(serviceType, serviceInstance);
+#endif
 		}
 
 		internal bool TryGetResolvedService(Type serviceType, out object serviceInstance)
 		{
+			Debug.Assert(!_disposed);
+
+#if NET35
+			lock (_resolvedServices)
+			{
+				return _resolvedServices.TryGetValue(serviceType, out serviceInstance);
+			}
+#else
 			return _resolvedServices.TryGetValue(serviceType, out serviceInstance);
+#endif
 		}
 
 		#endregion
@@ -71,16 +100,6 @@ namespace UnityFx.DependencyInjection
 
 		public object GetService(Type serviceType)
 		{
-			if (serviceType == null)
-			{
-				throw new ArgumentNullException(nameof(serviceType));
-			}
-
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(GetType().Name);
-			}
-
 			return _serviceProvider.GetService(serviceType, this);
 		}
 

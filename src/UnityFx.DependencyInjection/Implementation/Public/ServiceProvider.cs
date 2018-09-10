@@ -32,8 +32,17 @@ namespace UnityFx.DependencyInjection
 
 		internal object GetService(Type serviceType, ServiceScope scope)
 		{
-			Debug.Assert(serviceType != null);
 			Debug.Assert(scope != null);
+
+			if (serviceType == null)
+			{
+				throw new ArgumentNullException(nameof(serviceType));
+			}
+
+			if (_disposed)
+			{
+				throw new ObjectDisposedException(GetType().Name);
+			}
 
 			if (_services.TryGetValue(serviceType, out var item))
 			{
@@ -67,16 +76,6 @@ namespace UnityFx.DependencyInjection
 		/// <inheritdoc/>
 		public object GetService(Type serviceType)
 		{
-			if (serviceType == null)
-			{
-				throw new ArgumentNullException(nameof(serviceType));
-			}
-
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(GetType().Name);
-			}
-
 			return GetService(serviceType, _rootScope);
 		}
 
@@ -217,24 +216,21 @@ namespace UnityFx.DependencyInjection
 			// Select the first public non-static ctor having all arguments registered.
 			foreach (var ctor in constructors)
 			{
-				if (!ctor.IsStatic)
+				var argumentsValidated = true;
+
+				foreach (var arg in ctor.GetParameters())
 				{
-					var argumentsValidated = true;
-
-					foreach (var arg in ctor.GetParameters())
+					// Make sure the argument type is registered in _services (so we can create it).
+					if (!knownTypes.ContainsKey(arg.ParameterType))
 					{
-						// Make sure the argument type is registered in _services (so we can create it).
-						if (!knownTypes.ContainsKey(arg.ParameterType))
-						{
-							argumentsValidated = false;
-							break;
-						}
+						argumentsValidated = false;
+						break;
 					}
+				}
 
-					if (argumentsValidated)
-					{
-						return ctor;
-					}
+				if (argumentsValidated)
+				{
+					return ctor;
 				}
 			}
 
