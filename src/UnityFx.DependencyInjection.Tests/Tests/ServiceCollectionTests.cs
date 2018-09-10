@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using Xunit;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	public class ServiceCollectionTests
 	{

@@ -2,6 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net46</TargetFrameworks>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>UnityFx.DependencyInjection</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

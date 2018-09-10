@@ -2,14 +2,12 @@
 // Licensed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 
-namespace UnityFx.AppStates.DependencyInjection
+namespace UnityFx.DependencyInjection
 {
 	/// <summary>
 	/// Describes a service with its service type, implementation, and lifetime.
 	/// </summary>
-	/// <seealso cref="ServiceCollection"/>
 	/// <seealso cref="IServiceCollection"/>
 	/// <seealso cref="IServiceProvider"/>
 	public class ServiceDescriptor
@@ -20,8 +18,7 @@ namespace UnityFx.AppStates.DependencyInjection
 		private readonly Type _implementationType;
 		private readonly Func<IServiceProvider, object> _serviceFactory;
 		private readonly ServiceLifetime _serviceLifetime;
-
-		private object _serviceInstance;
+		private readonly object _serviceInstance;
 
 		#endregion
 
@@ -30,26 +27,39 @@ namespace UnityFx.AppStates.DependencyInjection
 		/// <summary>
 		/// Gets the service type.
 		/// </summary>
+		/// <seealso cref="ImplementationType"/>
+		/// <seealso cref="ImplementationInstance"/>
+		/// <seealso cref="ImplementationFactory"/>
 		public Type ServiceType => _serviceType;
 
 		/// <summary>
 		/// Gets the service type.
 		/// </summary>
+		/// <seealso cref="ImplementationInstance"/>
+		/// <seealso cref="ImplementationFactory"/>
+		/// <seealso cref="ServiceType"/>
 		public Type ImplementationType => _implementationType;
 
 		/// <summary>
 		/// Gets the service factory.
 		/// </summary>
+		/// <seealso cref="ImplementationInstance"/>
+		/// <seealso cref="ImplementationType"/>
+		/// <seealso cref="ServiceType"/>
 		public Func<IServiceProvider, object> ImplementationFactory => _serviceFactory;
 
 		/// <summary>
 		/// Gets the singleton service instance.
 		/// </summary>
+		/// <seealso cref="ImplementationFactory"/>
+		/// <seealso cref="ImplementationType"/>
+		/// <seealso cref="ServiceType"/>
 		public object ImplementationInstance => _serviceInstance;
 
 		/// <summary>
 		/// Gets the service lifetime.
 		/// </summary>
+		/// <seealso cref="ServiceType"/>
 		public ServiceLifetime Lifetime => _serviceLifetime;
 
 		/// <summary>
@@ -88,18 +98,24 @@ namespace UnityFx.AppStates.DependencyInjection
 		/// <exception cref="ArgumentNullException">Thrown if either <paramref name="serviceType"/> or <paramref name="implementationType"/> is <see langword="null"/>.</exception>
 		public ServiceDescriptor(Type serviceType, Type implementationType, ServiceLifetime lifetime)
 		{
-			_serviceType = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
-			_implementationType = implementationType ?? throw new ArgumentNullException(nameof(implementationType));
-			_serviceLifetime = lifetime;
-		}
+			if (serviceType == null)
+			{
+				throw new ArgumentNullException(nameof(serviceType));
+			}
 
-		/// <summary>
-		/// Sets value of the <see cref="ImplementationInstance"/> property. Should only be called be <see cref="ServiceProvider"/>.
-		/// </summary>
-		internal void SetInstance(object instance)
-		{
-			Debug.Assert(_serviceInstance == null);
-			_serviceInstance = instance;
+			if (implementationType == null)
+			{
+				throw new ArgumentNullException(nameof(implementationType));
+			}
+
+			if (implementationType.IsAbstract || implementationType.IsInterface)
+			{
+				throw new ArgumentException("Implementatino type should not be and asbtract type or interface.", nameof(implementationType));
+			}
+
+			_serviceType = serviceType;
+			_implementationType = implementationType;
+			_serviceLifetime = lifetime;
 		}
 
 		#endregion
