@@ -39,6 +39,22 @@ namespace UnityFx.DependencyInjection
 		}
 
 		[Fact]
+		public void BuildServiceProvider_UsesLastTypeOverride()
+		{
+			// Arrange
+			var sc = new ServiceCollection();
+			sc.AddTransient<IEnumerable, ArrayList>();
+			sc.AddTransient<IEnumerable, Hashtable>();
+
+			// Act
+			var sp = sc.BuildServiceProvider();
+			var s = sp.GetService(typeof(IEnumerable));
+
+			// Assert
+			Assert.IsType<Hashtable>(s);
+		}
+
+		[Fact]
 		public void Dispose_IsCalledOnScopeDisposal()
 		{
 			// Arrange

@@ -105,10 +105,18 @@ namespace UnityFx.DependencyInjection
 
 			foreach (var descriptor in serviceDescriptors)
 			{
-				knownTypes.Add(descriptor.ServiceType, descriptor);
+				if (knownTypes.ContainsKey(descriptor.ServiceType))
+				{
+					// Use last registered service descriptor.
+					knownTypes[descriptor.ServiceType] = descriptor;
+				}
+				else
+				{
+					knownTypes.Add(descriptor.ServiceType, descriptor);
+				}
 			}
 
-			foreach (var descriptor in serviceDescriptors)
+			foreach (var descriptor in knownTypes.Values)
 			{
 				var serviceType = descriptor.ServiceType;
 
