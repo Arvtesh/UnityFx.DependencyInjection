@@ -21,6 +21,7 @@ namespace UnityFx.DependencyInjection
 #else
 		private readonly ConcurrentDictionary<Type, object> _resolvedServices = new ConcurrentDictionary<Type, object>();
 #endif
+		private List<IDisposable> _disposables;
 		private bool _disposed;
 
 		#endregion
@@ -53,10 +54,10 @@ namespace UnityFx.DependencyInjection
 #if NET35
 			lock (_resolvedServices)
 			{
-				_resolvedServices.Add(serviceType, serviceInstance);
+				_resolvedServices.Add(serviceType, CaptureDisposable(serviceInstance));
 			}
 #else
-			_resolvedServices.TryAdd(serviceType, serviceInstance);
+			_resolvedServices.TryAdd(serviceType, CaptureDisposable(serviceInstance));
 #endif
 		}
 
@@ -113,16 +114,46 @@ namespace UnityFx.DependencyInjection
 			{
 				_disposed = true;
 
-				foreach (var service in _resolvedServices.Values)
+				lock (_resolvedServices)
 				{
-					if (service is IDisposable d)
+					if (_disposables != null)
 					{
-						d.Dispose();
+						for (var i = _disposables.Count - 1; i >= 0; --i)
+						{
+							_disposables[i].Dispose();
+						}
+
+						_disposables.Clear();
+					}
+
+					_resolvedServices.Clear();
+				}
+			}
+		}
+
+		#endregion
+
+		#region implementation
+
+		private object CaptureDisposable(object service)
+		{
+			if (this != service)
+			{
+				if (service is IDisposable disposable)
+				{
+					lock (_resolvedServices)
+					{
+						if (_disposables == null)
+						{
+							_disposables = new List<IDisposable>(16);
+						}
+
+						_disposables.Add(disposable);
 					}
 				}
-
-				_resolvedServices.Clear();
 			}
+
+			return service;
 		}
 
 		#endregion
