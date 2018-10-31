@@ -130,8 +130,8 @@ namespace UnityFx.DependencyInjection
 
 				if (descriptor.ImplementationInstance != null)
 				{
-					_services.Add(serviceType, new InstanceServiceFactory(serviceType, descriptor.ImplementationInstance));
-					_rootScope.AddResolvedService(serviceType, descriptor.ImplementationInstance);
+					_services.Add(serviceType, new InstanceServiceFactory(descriptor, descriptor.ImplementationInstance));
+					_rootScope.AddResolvedService(descriptor.ImplementationInstance, descriptor);
 				}
 				else if (descriptor.ImplementationType != null)
 				{
@@ -147,11 +147,11 @@ namespace UnityFx.DependencyInjection
 						constructorTypes.Add(serviceType, ctor);
 					}
 
-					_services.Add(serviceType, new ConstructorServiceFactory(serviceType, ctor, descriptor.Lifetime));
+					_services.Add(serviceType, new ConstructorServiceFactory(descriptor, ctor));
 				}
 				else if (descriptor.ImplementationFactory != null)
 				{
-					_services.Add(serviceType, new DelegateServiceFactory(serviceType, descriptor.ImplementationFactory, descriptor.Lifetime));
+					_services.Add(serviceType, new DelegateServiceFactory(descriptor, descriptor.ImplementationFactory));
 				}
 				else
 				{
@@ -257,7 +257,7 @@ namespace UnityFx.DependencyInjection
 			else
 			{
 				var service = serviceFactory.CreateInstance(scope);
-				_rootScope.AddResolvedService(serviceFactory.ServiceType, service);
+				_rootScope.AddResolvedService(service, serviceFactory);
 				return service;
 			}
 		}
@@ -274,7 +274,7 @@ namespace UnityFx.DependencyInjection
 			else
 			{
 				var service = serviceFactory.CreateInstance(scope);
-				scope.AddResolvedService(serviceFactory.ServiceType, service);
+				scope.AddResolvedService(service, serviceFactory);
 				return service;
 			}
 		}

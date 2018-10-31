@@ -10,7 +10,7 @@ namespace UnityFx.DependencyInjection
 	/// </summary>
 	/// <seealso cref="IServiceCollection"/>
 	/// <seealso cref="IServiceProvider"/>
-	public class ServiceDescriptor
+	public class ServiceDescriptor : IServiceInfo
 	{
 		#region data
 
@@ -18,19 +18,12 @@ namespace UnityFx.DependencyInjection
 		private readonly Type _implementationType;
 		private readonly Func<IServiceProvider, object> _serviceFactory;
 		private readonly ServiceLifetime _serviceLifetime;
+		private readonly ServiceOptions _serviceOptions;
 		private readonly object _serviceInstance;
 
 		#endregion
 
 		#region interface
-
-		/// <summary>
-		/// Gets the service type.
-		/// </summary>
-		/// <seealso cref="ImplementationType"/>
-		/// <seealso cref="ImplementationInstance"/>
-		/// <seealso cref="ImplementationFactory"/>
-		public Type ServiceType => _serviceType;
 
 		/// <summary>
 		/// Gets the service type.
@@ -57,22 +50,18 @@ namespace UnityFx.DependencyInjection
 		public object ImplementationInstance => _serviceInstance;
 
 		/// <summary>
-		/// Gets the service lifetime.
-		/// </summary>
-		/// <seealso cref="ServiceType"/>
-		public ServiceLifetime Lifetime => _serviceLifetime;
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="ServiceDescriptor"/> class with the specified <paramref name="instance"/> as a <see cref="ServiceLifetime.Singleton"/>.
 		/// </summary>
 		/// <param name="serviceType">Service type.</param>
 		/// <param name="instance">Service singleton instance.</param>
+		/// <param name="options">Service options.</param>
 		/// <exception cref="ArgumentNullException">Thrown if either <paramref name="serviceType"/> or <paramref name="instance"/> is <see langword="null"/>.</exception>
-		public ServiceDescriptor(Type serviceType, object instance)
+		public ServiceDescriptor(Type serviceType, object instance, ServiceOptions options)
 		{
 			_serviceType = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
 			_serviceInstance = instance ?? throw new ArgumentNullException(nameof(instance));
 			_serviceLifetime = ServiceLifetime.Singleton;
+			_serviceOptions = options;
 		}
 
 		/// <summary>
@@ -81,12 +70,14 @@ namespace UnityFx.DependencyInjection
 		/// <param name="serviceType">Service type.</param>
 		/// <param name="implementationFactory">Service factory.</param>
 		/// <param name="lifetime">Service lifetime.</param>
+		/// <param name="options">Service options.</param>
 		/// <exception cref="ArgumentNullException">Thrown if either <paramref name="serviceType"/> or <paramref name="implementationFactory"/> is <see langword="null"/>.</exception>
-		public ServiceDescriptor(Type serviceType, Func<IServiceProvider, object> implementationFactory, ServiceLifetime lifetime)
+		public ServiceDescriptor(Type serviceType, Func<IServiceProvider, object> implementationFactory, ServiceLifetime lifetime, ServiceOptions options)
 		{
 			_serviceType = serviceType ?? throw new ArgumentNullException(nameof(serviceType));
 			_serviceFactory = implementationFactory ?? throw new ArgumentNullException(nameof(implementationFactory));
 			_serviceLifetime = lifetime;
+			_serviceOptions = options;
 		}
 
 		/// <summary>
@@ -95,8 +86,9 @@ namespace UnityFx.DependencyInjection
 		/// <param name="serviceType">Service type.</param>
 		/// <param name="implementationType">Service implementation type.</param>
 		/// <param name="lifetime">Service lifetime.</param>
+		/// <param name="options">Service options.</param>
 		/// <exception cref="ArgumentNullException">Thrown if either <paramref name="serviceType"/> or <paramref name="implementationType"/> is <see langword="null"/>.</exception>
-		public ServiceDescriptor(Type serviceType, Type implementationType, ServiceLifetime lifetime)
+		public ServiceDescriptor(Type serviceType, Type implementationType, ServiceLifetime lifetime, ServiceOptions options)
 		{
 			if (serviceType == null)
 			{
@@ -116,7 +108,34 @@ namespace UnityFx.DependencyInjection
 			_serviceType = serviceType;
 			_implementationType = implementationType;
 			_serviceLifetime = lifetime;
+			_serviceOptions = options;
 		}
+
+		#endregion
+
+		#region IServiceInfo
+
+		/// <summary>
+		/// Gets the service type.
+		/// </summary>
+		/// <seealso cref="ImplementationType"/>
+		/// <seealso cref="ImplementationInstance"/>
+		/// <seealso cref="ImplementationFactory"/>
+		public Type ServiceType => _serviceType;
+
+		/// <summary>
+		/// Gets the service lifetime.
+		/// </summary>
+		/// <seealso cref="ServiceType"/>
+		/// <seealso cref="Options"/>
+		public ServiceLifetime Lifetime => _serviceLifetime;
+
+		/// <summary>
+		/// Gets the service options.
+		/// </summary>
+		/// <seealso cref="ServiceType"/>
+		/// <seealso cref="Lifetime"/>
+		public ServiceOptions Options => _serviceOptions;
 
 		#endregion
 

@@ -12,16 +12,18 @@ namespace UnityFx.DependencyInjection
 		private readonly Type _serviceType;
 		private readonly Func<IServiceProvider, object> _factory;
 		private readonly ServiceLifetime _serviceLifetime;
+		private readonly ServiceOptions _serviceOptions;
 
 		#endregion
 
 		#region interface
 
-		public DelegateServiceFactory(Type serviceType, Func<IServiceProvider, object> serviceFactory, ServiceLifetime serviceLifetime)
+		public DelegateServiceFactory(IServiceInfo serviceInfo, Func<IServiceProvider, object> serviceFactory)
 		{
-			_serviceType = serviceType;
+			_serviceType = serviceInfo.ServiceType;
 			_factory = serviceFactory;
-			_serviceLifetime = serviceLifetime;
+			_serviceLifetime = serviceInfo.Lifetime;
+			_serviceOptions = serviceInfo.Options;
 		}
 
 		#endregion
@@ -31,6 +33,8 @@ namespace UnityFx.DependencyInjection
 		public Type ServiceType => _serviceType;
 
 		public ServiceLifetime Lifetime => _serviceLifetime;
+
+		public ServiceOptions Options => _serviceOptions;
 
 		public object CreateInstance(IServiceProvider serviceProvider) => _factory.Invoke(serviceProvider);
 

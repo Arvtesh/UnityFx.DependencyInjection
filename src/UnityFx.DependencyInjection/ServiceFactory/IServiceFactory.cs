@@ -8,20 +8,8 @@ namespace UnityFx.DependencyInjection
 	/// <summary>
 	/// A generic service factory.
 	/// </summary>
-	internal interface IServiceFactory
+	internal interface IServiceFactory : IServiceInfo
 	{
-		/// <summary>
-		/// Gets the service type.
-		/// </summary>
-		/// <seealso cref="Lifetime"/>
-		Type ServiceType { get; }
-
-		/// <summary>
-		/// Gets the service lifetime.
-		/// </summary>
-		/// <seealso cref="ServiceType"/>
-		ServiceLifetime Lifetime { get; }
-
 		/// <summary>
 		/// Instantiates the service.
 		/// </summary>

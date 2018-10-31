@@ -19,6 +19,7 @@ namespace UnityFx.DependencyInjection
 		private readonly Type _serviceType;
 		private readonly ConstructorInfo _ctor;
 		private readonly ServiceLifetime _serviceLifetime;
+		private readonly ServiceOptions _serviceOptions;
 
 		#endregion
 
@@ -26,11 +27,12 @@ namespace UnityFx.DependencyInjection
 
 		public ConstructorInfo Ctor => _ctor;
 
-		public ConstructorServiceFactory(Type serviceType, ConstructorInfo ctor, ServiceLifetime serviceLifetime)
+		public ConstructorServiceFactory(IServiceInfo serviceInfo, ConstructorInfo ctor)
 		{
-			_serviceType = serviceType;
+			_serviceType = serviceInfo.ServiceType;
 			_ctor = ctor;
-			_serviceLifetime = serviceLifetime;
+			_serviceLifetime = serviceInfo.Lifetime;
+			_serviceOptions = serviceInfo.Options;
 		}
 
 		#endregion
@@ -40,6 +42,8 @@ namespace UnityFx.DependencyInjection
 		public Type ServiceType => _serviceType;
 
 		public ServiceLifetime Lifetime => _serviceLifetime;
+
+		public ServiceOptions Options => _serviceOptions;
 
 		public object CreateInstance(IServiceProvider serviceProvider)
 		{

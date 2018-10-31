@@ -47,17 +47,18 @@ namespace UnityFx.DependencyInjection
 			}
 		}
 
-		internal void AddResolvedService(Type serviceType, object serviceInstance)
+		internal void AddResolvedService(object serviceInstance, IServiceInfo serviceInfo)
 		{
+			Debug.Assert(serviceInfo != null);
 			Debug.Assert(!_disposed);
 
 #if NET35
 			lock (_resolvedServices)
 			{
-				_resolvedServices.Add(serviceType, CaptureDisposable(serviceInstance));
+				_resolvedServices.Add(serviceInfo.ServiceType, CaptureDisposable(serviceInstance, serviceInfo.Options));
 			}
 #else
-			_resolvedServices.TryAdd(serviceType, CaptureDisposable(serviceInstance));
+			_resolvedServices.TryAdd(serviceInfo.ServiceType, CaptureDisposable(serviceInstance, serviceInfo.Options));
 #endif
 		}
 
@@ -135,11 +136,11 @@ namespace UnityFx.DependencyInjection
 
 		#region implementation
 
-		private object CaptureDisposable(object service)
+		private object CaptureDisposable(object service, ServiceOptions options)
 		{
 			if (this != service)
 			{
-				if (service is IDisposable disposable)
+				if ((options & ServiceOptions.DoNotDispose) == 0 && service is IDisposable disposable)
 				{
 					lock (_resolvedServices)
 					{

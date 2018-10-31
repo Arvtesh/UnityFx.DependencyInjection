@@ -11,15 +11,17 @@ namespace UnityFx.DependencyInjection
 
 		private readonly Type _serviceType;
 		private readonly object _instance;
+		private readonly ServiceOptions _serviceOptions;
 
 		#endregion
 
 		#region interface
 
-		public InstanceServiceFactory(Type serviceType, object instance)
+		public InstanceServiceFactory(IServiceInfo serviceInfo, object instance)
 		{
-			_serviceType = serviceType;
+			_serviceType = serviceInfo.ServiceType;
 			_instance = instance;
+			_serviceOptions = serviceInfo.Options;
 		}
 
 		#endregion
@@ -29,6 +31,8 @@ namespace UnityFx.DependencyInjection
 		public Type ServiceType => _serviceType;
 
 		public ServiceLifetime Lifetime => ServiceLifetime.Singleton;
+
+		public ServiceOptions Options => _serviceOptions;
 
 		public object CreateInstance(IServiceProvider serviceProvider) => _instance;
 

@@ -98,7 +98,19 @@ namespace UnityFx.DependencyInjection
 		/// <param name="implementationType">Type of the service implementation.</param>
 		public static void AddSingleton(this IServiceCollection services, Type serviceType, Type implementationType)
 		{
-			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Singleton));
+			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Singleton, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and <paramref name="implementationType"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service.</param>
+		/// <param name="implementationType">Type of the service implementation.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddSingleton(this IServiceCollection services, Type serviceType, Type implementationType, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Singleton, options));
 		}
 
 		/// <summary>
@@ -108,7 +120,18 @@ namespace UnityFx.DependencyInjection
 		/// <param name="serviceType">Type of the service/implementation.</param>
 		public static void AddSingleton(this IServiceCollection services, Type serviceType)
 		{
-			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Singleton));
+			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Singleton, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service/implementation.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddSingleton(this IServiceCollection services, Type serviceType, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Singleton, options));
 		}
 
 		/// <summary>
@@ -119,7 +142,19 @@ namespace UnityFx.DependencyInjection
 		/// <param name="instance">The service instance.</param>
 		public static void AddSingleton(this IServiceCollection services, Type serviceType, object instance)
 		{
-			services.Add(new ServiceDescriptor(serviceType, instance));
+			services.Add(new ServiceDescriptor(serviceType, instance, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and <paramref name="instance"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service.</param>
+		/// <param name="instance">The service instance.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddSingleton(this IServiceCollection services, Type serviceType, object instance, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, instance, options));
 		}
 
 		/// <summary>
@@ -130,7 +165,19 @@ namespace UnityFx.DependencyInjection
 		/// <param name="implementationFactory">Factory delegate for the service instances.</param>
 		public static void AddSingleton(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory)
 		{
-			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Singleton));
+			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Singleton, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and <paramref name="implementationFactory"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service.</param>
+		/// <param name="implementationFactory">Factory delegate for the service instances.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddSingleton(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Singleton, options));
 		}
 
 		/// <summary>
@@ -141,7 +188,19 @@ namespace UnityFx.DependencyInjection
 		/// <typeparam name="TImplementation">Type of the service implementation.</typeparam>
 		public static void AddSingleton<TService, TImplementation>(this IServiceCollection services) where TService : class where TImplementation : class, TService
 		{
-			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Singleton));
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Singleton, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and <typeparamref name="TImplementation"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="options">Service options.</param>
+		/// <typeparam name="TService">Type of the service.</typeparam>
+		/// <typeparam name="TImplementation">Type of the service implementation.</typeparam>
+		public static void AddSingleton<TService, TImplementation>(this IServiceCollection services, ServiceOptions options) where TService : class where TImplementation : class, TService
+		{
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Singleton, options));
 		}
 
 		/// <summary>
@@ -151,18 +210,41 @@ namespace UnityFx.DependencyInjection
 		/// <typeparam name="TService">Type of the service/implementation.</typeparam>
 		public static void AddSingleton<TService>(this IServiceCollection services) where TService : class
 		{
-			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Singleton));
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Singleton, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="options">Service options.</param>
+		/// <typeparam name="TService">Type of the service/implementation.</typeparam>
+		public static void AddSingleton<TService>(this IServiceCollection services, ServiceOptions options) where TService : class
+		{
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Singleton, options));
 		}
 
 		/// <summary>
 		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and <paramref name="instance"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
 		/// </summary>
 		/// <param name="services">Target service collection.</param>
-		/// <typeparam name="TService">Type of the service.</typeparam>
 		/// <param name="instance">The singleton instance.</param>
+		/// <typeparam name="TService">Type of the service.</typeparam>
 		public static void AddSingleton<TService>(this IServiceCollection services, TService instance) where TService : class
 		{
-			services.Add(new ServiceDescriptor(typeof(TService), instance));
+			services.Add(new ServiceDescriptor(typeof(TService), instance, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and <paramref name="instance"/> and the <see cref="ServiceLifetime.Singleton"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="instance">The singleton instance.</param>
+		/// <param name="options">Service options.</param>
+		/// <typeparam name="TService">Type of the service.</typeparam>
+		public static void AddSingleton<TService>(this IServiceCollection services, TService instance, ServiceOptions options) where TService : class
+		{
+			services.Add(new ServiceDescriptor(typeof(TService), instance, options));
 		}
 
 		/// <summary>
@@ -173,7 +255,19 @@ namespace UnityFx.DependencyInjection
 		/// <param name="implementationType">Type of the service implementation.</param>
 		public static void AddTransient(this IServiceCollection services, Type serviceType, Type implementationType)
 		{
-			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient));
+			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and <paramref name="implementationType"/> and the <see cref="ServiceLifetime.Transient"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service.</param>
+		/// <param name="implementationType">Type of the service implementation.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddTransient(this IServiceCollection services, Type serviceType, Type implementationType, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient, options));
 		}
 
 		/// <summary>
@@ -183,7 +277,18 @@ namespace UnityFx.DependencyInjection
 		/// <param name="serviceType">Type of the service/implementation.</param>
 		public static void AddTransient(this IServiceCollection services, Type serviceType)
 		{
-			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Transient));
+			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Transient, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and the <see cref="ServiceLifetime.Transient"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service/implementation.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddTransient(this IServiceCollection services, Type serviceType, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Transient, options));
 		}
 
 		/// <summary>
@@ -194,7 +299,19 @@ namespace UnityFx.DependencyInjection
 		/// <param name="implementationFactory">Factory delegate for the service instances.</param>
 		public static void AddTransient(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory)
 		{
-			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Transient));
+			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Transient, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and <paramref name="implementationFactory"/> and the <see cref="ServiceLifetime.Transient"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service.</param>
+		/// <param name="implementationFactory">Factory delegate for the service instances.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddTransient(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Transient, options));
 		}
 
 		/// <summary>
@@ -205,7 +322,19 @@ namespace UnityFx.DependencyInjection
 		/// <typeparam name="TImplementation">Type of the service implementation.</typeparam>
 		public static void AddTransient<TService, TImplementation>(this IServiceCollection services) where TService : class where TImplementation : class, TService
 		{
-			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Transient));
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Transient, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and <typeparamref name="TImplementation"/> and the <see cref="ServiceLifetime.Transient"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="options">Service options.</param>
+		/// <typeparam name="TService">Type of the service.</typeparam>
+		/// <typeparam name="TImplementation">Type of the service implementation.</typeparam>
+		public static void AddTransient<TService, TImplementation>(this IServiceCollection services, ServiceOptions options) where TService : class where TImplementation : class, TService
+		{
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Transient, options));
 		}
 
 		/// <summary>
@@ -215,7 +344,18 @@ namespace UnityFx.DependencyInjection
 		/// <typeparam name="TService">Type of the service/implementation.</typeparam>
 		public static void AddTransient<TService>(this IServiceCollection services) where TService : class
 		{
-			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Transient));
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Transient, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and the <see cref="ServiceLifetime.Transient"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="options">Service options.</param>
+		/// <typeparam name="TService">Type of the service/implementation.</typeparam>
+		public static void AddTransient<TService>(this IServiceCollection services, ServiceOptions options) where TService : class
+		{
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Transient, options));
 		}
 
 		/// <summary>
@@ -226,7 +366,19 @@ namespace UnityFx.DependencyInjection
 		/// <param name="implementationType">Type of the service implementation.</param>
 		public static void AddScoped(this IServiceCollection services, Type serviceType, Type implementationType)
 		{
-			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Scoped));
+			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Scoped, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and <paramref name="implementationType"/> and the <see cref="ServiceLifetime.Scoped"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service.</param>
+		/// <param name="implementationType">Type of the service implementation.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddScoped(this IServiceCollection services, Type serviceType, Type implementationType, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Scoped, options));
 		}
 
 		/// <summary>
@@ -236,7 +388,18 @@ namespace UnityFx.DependencyInjection
 		/// <param name="serviceType">Type of the service/implementation.</param>
 		public static void AddScoped(this IServiceCollection services, Type serviceType)
 		{
-			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Scoped));
+			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Scoped, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and the <see cref="ServiceLifetime.Scoped"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service/implementation.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddScoped(this IServiceCollection services, Type serviceType, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, serviceType, ServiceLifetime.Scoped, options));
 		}
 
 		/// <summary>
@@ -247,7 +410,19 @@ namespace UnityFx.DependencyInjection
 		/// <param name="implementationFactory">Factory delegate for the service instances.</param>
 		public static void AddScoped(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory)
 		{
-			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Scoped));
+			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Scoped, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <paramref name="serviceType"/> and <paramref name="implementationFactory"/> and the <see cref="ServiceLifetime.Scoped"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="serviceType">Type of the service.</param>
+		/// <param name="implementationFactory">Factory delegate for the service instances.</param>
+		/// <param name="options">Service options.</param>
+		public static void AddScoped(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory, ServiceOptions options)
+		{
+			services.Add(new ServiceDescriptor(serviceType, implementationFactory, ServiceLifetime.Scoped, options));
 		}
 
 		/// <summary>
@@ -258,7 +433,19 @@ namespace UnityFx.DependencyInjection
 		/// <typeparam name="TImplementation">Type of the service implementation.</typeparam>
 		public static void AddScoped<TService, TImplementation>(this IServiceCollection services) where TService : class where TImplementation : class, TService
 		{
-			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Scoped));
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Scoped, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and <typeparamref name="TImplementation"/> and the <see cref="ServiceLifetime.Scoped"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="options">Service options.</param>
+		/// <typeparam name="TService">Type of the service.</typeparam>
+		/// <typeparam name="TImplementation">Type of the service implementation.</typeparam>
+		public static void AddScoped<TService, TImplementation>(this IServiceCollection services, ServiceOptions options) where TService : class where TImplementation : class, TService
+		{
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.Scoped, options));
 		}
 
 		/// <summary>
@@ -268,7 +455,18 @@ namespace UnityFx.DependencyInjection
 		/// <typeparam name="TService">Type of the service.</typeparam>
 		public static void AddScoped<TService>(this IServiceCollection services) where TService : class
 		{
-			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Scoped));
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Scoped, ServiceOptions.None));
+		}
+
+		/// <summary>
+		/// Adds an instance of <see cref="ServiceDescriptor"/> with the specified <typeparamref name="TService"/> and the <see cref="ServiceLifetime.Scoped"/> lifetime.
+		/// </summary>
+		/// <param name="services">Target service collection.</param>
+		/// <param name="options">Service options.</param>
+		/// <typeparam name="TService">Type of the service.</typeparam>
+		public static void AddScoped<TService>(this IServiceCollection services, ServiceOptions options) where TService : class
+		{
+			services.Add(new ServiceDescriptor(typeof(TService), typeof(TService), ServiceLifetime.Scoped, options));
 		}
 	}
 }

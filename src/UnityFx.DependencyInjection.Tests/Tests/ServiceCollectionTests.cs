@@ -14,7 +14,7 @@ namespace UnityFx.DependencyInjection
 		{
 			// Arrange
 			var list = new ServiceCollection();
-			var item = new ServiceDescriptor(typeof(IEnumerable), new ArrayList());
+			var item = new ServiceDescriptor(typeof(IEnumerable), new ArrayList(), ServiceOptions.None);
 
 			// Act
 			list.Add(item);
@@ -28,7 +28,7 @@ namespace UnityFx.DependencyInjection
 		{
 			// Arrange
 			var list = new ServiceCollection();
-			var item = new ServiceDescriptor(typeof(IEnumerable), new ArrayList());
+			var item = new ServiceDescriptor(typeof(IEnumerable), new ArrayList(), ServiceOptions.None);
 
 			// Act
 			list.Add(item);
