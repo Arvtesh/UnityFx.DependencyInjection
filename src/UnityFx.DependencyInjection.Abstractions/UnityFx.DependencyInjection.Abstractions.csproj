@@ -30,8 +30,4 @@
 		<AdditionalFiles Include="../CodingConventions/Common/stylecop.json" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\UnityFx.DependencyInjection.Abstractions\UnityFx.DependencyInjection.Abstractions.csproj" />
-	</ItemGroup>
-
 </Project>

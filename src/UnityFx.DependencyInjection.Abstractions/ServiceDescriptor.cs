@@ -110,7 +110,7 @@ namespace UnityFx.DependencyInjection
 
 			if (implementationType.IsAbstract || implementationType.IsInterface)
 			{
-				throw new ArgumentException(Messages.FormatImplementationTypeIsAbstract(serviceType, implementationType));
+				throw new ArgumentException($"Implementation type registered for service {serviceType.Name} is not concrete ({implementationType.Name}).");
 			}
 
 			_serviceType = serviceType;
